@@ -158,3 +158,6 @@ pip-selfcheck.json
 .idea/modules.xml
 .idea/vcs.xml
 Fast Routing.iml
+.ipynb_checkpoints
+*.ipynb
+Test.py
