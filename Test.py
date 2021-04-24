@@ -7,6 +7,7 @@ import pandas as pd
 import os
 
 from dataframeutils import standardize_dataframe_columns
+from routing import SavingsAlgorithm
 
 # Load addresses
 address_location = '..\\ISC Project\\ISC Project Code\\RandomAddresses.xlsx'
@@ -24,7 +25,7 @@ addresses = Address.build_addresses(data)
 all_geocodes, log = Geocoding.get_geocodes(addresses)
 print(f'Number of geocode retrieves: {len(all_geocodes)}')
 print(f'Number of failed geocoding: {len(log)}')
-geocodes_map = {geocode : index for index, geocode in enumerate(all_geocodes)}
+geocodes_map = {geocode: index for index, geocode in enumerate(all_geocodes)}
 
 # Request distance and duration matrices
 api_key = os.environ['BING_MAPS_API_KEY']
@@ -41,3 +42,6 @@ display(pd.DataFrame(distance_matrix))
 
 print("\nDuration Matrix")
 display(pd.DataFrame(duration_matrix))
+
+# Savings matrix
+SavingsAlgorithm.compute_saving_matrix(distance_matrix)
