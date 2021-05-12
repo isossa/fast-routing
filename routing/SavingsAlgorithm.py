@@ -7,6 +7,10 @@ from routing.route import node_is_active, add_link, set_node_status, get_link_st
 from routing.savingsutils import get_maximum_savings
 
 
+def valid_assignment(route: tuple, demand: dict):
+    pass
+
+
 def update_route(link: tuple, route: tuple, capacity: int, demand: dict, locations: dict) -> tuple:
     """Update routes
 
@@ -93,10 +97,9 @@ def get_availability_map(availability: list) -> dict:
     """
     availability_map = get_availability_score(availability)
 
-    for key, _ in availability_map.items():
-        index = int(key[1:]) - 1
-        availability_map[key] = availability[index]
-
+    for driver, _ in availability_map.items():
+        index = int(driver[1:]) - 1
+        availability_map[driver] = availability[index]
     return availability_map
 
 
@@ -238,8 +241,11 @@ def run_feasible_assignment(sorted_savings: dict, capacity: int, demand: dict, c
                                                                                  capacity, demand, locations,
                                                                                  marginal_capacity)
         elif len(locations) == 1:
-            routes_assignment = insert_last_customer(routes_assignment, sorted_savings, capacity + marginal_capacity,
-                                                     demand, locations)
+            d = next(iter(locations.values()))
+            if capacity - d == 1:
+                routes_assignment = insert_last_customer(routes_assignment, sorted_savings,
+                                                         capacity + marginal_capacity,
+                                                         demand, locations)
 
         customers.update(locations)
         locations = {customer: status for customer, status in customers.items() if status}
@@ -248,3 +254,60 @@ def run_feasible_assignment(sorted_savings: dict, capacity: int, demand: dict, c
 
     all_assigned = (len(locations) == 0)
     return routes_assignment, all_routes, customers, all_assigned
+
+
+def build_routes(sorted_savings: dict, capacity: int, demand: dict, customers: dict, availability_map: dict,
+                 marginal_capacity: int) -> tuple:
+    iteration = 0
+    all_assigned = False
+    all_routes = {}
+    routes_assignment = {}
+
+    while not all_assigned and iteration <= 10:
+        dummy_drivers = {}
+        for driver, availability in availability_map.items():
+            dummy_drivers[str(driver) + '_' + str(iteration)] = availability
+
+        iteration += 1
+
+        customers_to_assign = {customer: status for customer, status in customers.items() if status}
+
+        routes_assignment_new, all_routes_new, customers_new, all_assigned = \
+            run_feasible_assignment(sorted_savings, capacity, demand, customers_to_assign, dummy_drivers,
+                                    marginal_capacity)
+
+        routes_assignment.update(routes_assignment_new)
+        all_routes.update(all_routes_new)
+        customers.update(customers_new)
+
+    return routes_assignment, all_routes, customers, all_assigned
+
+
+def assign_routes(sorted_savings: dict, capacity: int, demand: dict, customers: dict, availability_map: dict,
+                  marginal_capacity: int) -> tuple:
+    """Build routes
+
+    :param sorted_savings:
+    :param capacity:
+    :param demand:
+    :param customers:
+    :param availability_map:
+    :param marginal_capacity:
+    :return:
+    """
+
+    routes_assignment, all_routes, customers, all_assigned = \
+        build_routes(sorted_savings, capacity, demand, customers, availability_map, marginal_capacity)
+
+    return routes_assignment, all_routes, customers, all_assigned
+
+
+def satisfy_capacity_constraint(route: list, capacity: int, demand: dict) -> bool:
+    """Check if all constraints are satisfied
+
+    :param route:
+    :param capacity:
+    :param demand:
+    :return:
+    """
+    return get_route_demand(route=route, demand=demand) <= capacity

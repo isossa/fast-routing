@@ -1,6 +1,8 @@
 import itertools
 import sys
 
+from database import DistanceMatrixDB
+
 
 def compute_saving_matrix(matrix: list) -> list:
     """Compute savings matrix
@@ -45,9 +47,25 @@ def get_maximum_savings(routes: dict, non_inserted: list, savings: dict) -> tupl
             links = itertools.product(outer_customers, non_inserted)
             links = [tuple(sorted(link)) for link in links]
             links.sort(key=lambda link: link[0])
+            print(links)
             for link in links:
                 if savings[link] > max_savings:
                     max_savings = savings[link]
                     max_driver = driver
                     max_link = link
     return max_driver, max_link, max_savings
+
+
+class SavingsDB:
+
+    @staticmethod
+    def compute_saving_matrix(distance_matrix_db: DistanceMatrixDB) -> list:
+        """ Matrix of locations. Compute savings matrix
+
+        :param distance_matrix_db:
+        :return:
+        """
+        locations = len(matrix)
+        return [[matrix[i][0] + matrix[0][j] - matrix[i][j] if i != j else float('NaN') for j in range(locations)]
+                for i in range(locations)]
+

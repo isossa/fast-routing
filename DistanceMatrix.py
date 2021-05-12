@@ -65,7 +65,7 @@ class DistanceMatrix:
         return result
 
     @staticmethod
-    def request_matrix(geocodes: list, api_key: str, travel_mode: str, size: int) -> requests.Response:
+    def request_matrix(geocodes: list, api_key: str, travel_mode: str, size: int) -> tuple:
         """
 
         Initializes an HTTP request to Bing Maps Distance Matrix API.
@@ -114,8 +114,6 @@ class DistanceMatrix:
         for i, origin in enumerate(geocodes):
             params['origins'] = '; '.join([origin])
             destinations = []
-            distance_pair_list = []
-            duration_pair_list = []
             buffet_size = 0
             for current_index in range(len(geocodes)):
                 if current_index != i:

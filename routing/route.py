@@ -1,54 +1,55 @@
 import math
 
 
-def get_route_demand(route: tuple, demand: dict) -> int:
+def get_route_demand(route_assigned: tuple, demand: dict) -> int:
     """Return total demand on this route
 
-    :param route:
+    :param route_assigned:
     :param demand:
     :return:
     """
     running_demand = 0
-    for x in route:
+    for x in route_assigned:
         if x != 0 and not math.isnan(demand[x]):
             running_demand += demand[x]
     return running_demand
 
 
-def get_route_distance(route: tuple, distance_matrix: list) -> int:
-    return __get_route_statistic(route, distance_matrix)
+def get_route_distance(route_assigned: tuple, distance_matrix: list) -> int:
+    return __get_route_statistic(route_assigned, distance_matrix)
 
 
-def get_route_duration(route: tuple, duration_matrix: list) -> int:
-    return __get_route_statistic(route, duration_matrix)
+def get_route_duration(route_assigned: tuple, duration_matrix: list) -> int:
+    return __get_route_statistic(route_assigned, duration_matrix)
 
 
-def __get_route_statistic(route: tuple, matrix: list) -> int:
+def __get_route_statistic(route_assigned: tuple, matrix: list) -> int:
     """Return route distance
 
-    :param route:
+    :param route_assigned:
     :param matrix:
     :return:
     """
     statistic = 0
-    for index, value in enumerate(route):
+    for index, value in enumerate(route_assigned):
         row = value
-        if index + 1 < len(route):
-            col = route[index + 1]
+        if index + 1 < len(route_assigned):
+            col = route_assigned[index + 1]
             if not math.isnan(matrix[row][col]):
                 statistic += matrix[row][col]
     return statistic
 
 
-def get_route_info(route: tuple, matrix: list, demand: dict) -> tuple[int, int, int]:
+def get_route_info(route_assigned: tuple, matrix: list, demand: dict) -> tuple[int, int, int]:
     """Return info of this route as demand and capacity
 
-    :param route:
+    :param route_assigned:
     :param matrix:
     :param demand:
     :return:
     """
-    return get_route_demand(route, demand), get_route_distance(route, matrix), get_route_duration(route, matrix)
+    return get_route_demand(route_assigned, demand), get_route_distance(route_assigned, matrix), \
+           get_route_duration(route_assigned, matrix)
 
 
 def get_routes(routes: dict) -> dict:
@@ -58,37 +59,37 @@ def get_routes(routes: dict) -> dict:
     :return: Return the routes solution of this savings algorithm
     """
     results = {}
-    for driver, route in routes.items():
-        if len(route) > 0:
+    for driver, route_assigned in routes.items():
+        if len(route_assigned) > 0:
             temp_route = [0]
-            temp_route.extend(route)
+            temp_route.extend(route_assigned)
             temp_route.append(0)
             results[driver] = tuple(temp_route)
     return results
 
 
-def is_interior(node: int, route: tuple) -> bool:
+def is_interior(node: int, route_assigned: tuple) -> bool:
     """Determine if a node is interior
 
     :param node:
-    :param route:
+    :param route_assigned:
     :return:
     """
-    return node in route[1:len(route) - 1]
+    return node in route_assigned[1:len(route_assigned) - 1]
 
 
-def add_link(i: int, j: int, route: tuple) -> tuple:
+def add_link(i: int, j: int, route_assigned: tuple) -> tuple:
     """Add a node to a route
 
     :param i:
     :param j:
-    :param route:
+    :param route_assigned:
     :return:
     """
-    if len(route) == 0:
+    if len(route_assigned) == 0:
         return i, j
     else:
-        route = list(route)
+        route = list(route_assigned)
         location = route.index(j)
         if location == 0:
             route.insert(0, i)
