@@ -1,7 +1,7 @@
 import itertools
 import sys
 
-from database import DistanceMatrixDB
+from Address import Address
 
 
 def compute_saving_matrix(matrix: list) -> list:
@@ -57,15 +57,23 @@ def get_maximum_savings(routes: dict, non_inserted: list, savings: dict) -> tupl
 
 
 class SavingsDB:
+    savings_map: dict = dict()
+    sorted_savings_map: dict = dict()
 
     @staticmethod
-    def compute_saving_matrix(distance_matrix_db: DistanceMatrixDB) -> list:
+    def compute_saving_matrix(distance_map: dict, depot: Address) -> list:
         """ Matrix of locations. Compute savings matrix
 
-        :param distance_matrix_db:
+        :param depot:
+        :param distance_map:
         :return:
         """
-        locations = len(matrix)
-        return [[matrix[i][0] + matrix[0][j] - matrix[i][j] if i != j else float('NaN') for j in range(locations)]
-                for i in range(locations)]
+        for origin in distance_map.keys():
+            if origin != depot:
+                temp = dict()
+                for destination in distance_map[origin]:
+                    if destination != depot:
+                        temp.update({destination: distance_map[origin][depot] + distance_map[depot][destination] - distance_map[origin][destination]})
+                SavingsDB.savings_map[origin] = temp
 
+        return SavingsDB.savings_map

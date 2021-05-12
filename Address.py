@@ -170,3 +170,14 @@ class Address(object):
         return '{street}, {city}, {state}, {country}, {zipcode}'.format(street=self.__street, city=self.__city,
                                                                         state=self.__state, country=self.__country,
                                                                         zipcode=self.__zipcode)
+
+    def __eq__(self, other):
+        return (
+                self.__class__ == other.__class__ and self.street == other.street and self.city == other.city
+                and self.state == other.state and self.country == other.country and self.zipcode == other.zipcode
+        )
+
+    def __hash__(self):
+        return hash(self.coordinates)
+
+

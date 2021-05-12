@@ -1,8 +1,8 @@
 import pickle
 
 
-class DistanceMatrixDB:
-    distance_matrix: dict = dict()
+class DurationMatrixDB:
+    duration_matrix: dict = dict()
 
     @staticmethod
     def load(filename: str):
@@ -13,8 +13,8 @@ class DistanceMatrixDB:
         :return:
         """
         with open(filename, 'rb') as input_file:
-            DistanceMatrixDB.distance_matrix = pickle.load(input_file)
-        return DistanceMatrixDB.distance_matrix
+            DurationMatrixDB.duration_matrix = pickle.load(input_file)
+        return DurationMatrixDB.duration_matrix
 
     @staticmethod
     def save(filename: str):
@@ -23,12 +23,12 @@ class DistanceMatrixDB:
         :return:
         """
         with open(filename, 'wb') as output_file:
-            pickle.dump(DistanceMatrixDB.distance_matrix, output_file)
+            pickle.dump(DurationMatrixDB.duration_matrix, output_file)
 
     @staticmethod
-    def get_distance_matrix():
-        return DistanceMatrixDB.distance_matrix
+    def get_duration_matrix():
+        return DurationMatrixDB.duration_matrix
 
     @staticmethod
-    def distance_between(l1: int, l2: int):
-        return DistanceMatrixDB.distance_matrix[l1][l2]
+    def duration_between(l1: int, l2: int):
+        return DurationMatrixDB.duration_matrix[l1][l2]
