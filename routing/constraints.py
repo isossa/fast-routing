@@ -1,4 +1,4 @@
-from routing.route import get_route_demand
+from utils.route import get_route_demand
 
 
 def satisfy_capacity_constraint(route: list, capacity: int, demand: dict) -> bool:

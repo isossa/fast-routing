@@ -1,11 +1,11 @@
 import pandas as pd
 from IPython.core.display import display
 
-from Address import Address
+from geo.Address import Address
 from DistanceMatrix import DistanceMatrix
 
 # Build a list of Addresses
-from Geocoding import Geocoding
+from services.Geocoding import Geocoding
 
 add0 = Address(street='305 Elm St', city='Weston', state='NE', zipcode='68070')
 add1 = Address(street='2073 23rd St', city='Wahoo', state='NE', zipcode='68066')

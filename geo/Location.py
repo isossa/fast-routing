@@ -1,5 +1,5 @@
-import Address
-import Driver
+from geo.Address import Address
+from driver.Driver import Driver
 
 
 class Location:

@@ -1,5 +1,7 @@
 import pickle
 
+from utils.WriteFile import WriteFile
+
 
 class DurationMatrixDB:
     duration_matrix: dict = dict()
@@ -12,8 +14,7 @@ class DurationMatrixDB:
         :param filename:
         :return:
         """
-        with open(filename, 'rb') as input_file:
-            DurationMatrixDB.duration_matrix = pickle.load(input_file)
+        DurationMatrixDB.duration_matrix = WriteFile.load(filename)
         return DurationMatrixDB.duration_matrix
 
     @staticmethod
@@ -22,8 +23,7 @@ class DurationMatrixDB:
         Write the content of this distance matrix to a file
         :return:
         """
-        with open(filename, 'wb') as output_file:
-            pickle.dump(DurationMatrixDB.duration_matrix, output_file)
+        WriteFile.save(filename, DurationMatrixDB.duration_matrix)
 
     @staticmethod
     def get_duration_matrix():

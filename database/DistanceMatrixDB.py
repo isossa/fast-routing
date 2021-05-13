@@ -1,4 +1,4 @@
-import pickle
+from utils.WriteFile import WriteFile
 
 
 class DistanceMatrixDB:
@@ -12,8 +12,7 @@ class DistanceMatrixDB:
         :param filename:
         :return:
         """
-        with open(filename, 'rb') as input_file:
-            DistanceMatrixDB.distance_matrix = pickle.load(input_file)
+        DistanceMatrixDB.distance_matrix = WriteFile.load(filename)
         return DistanceMatrixDB.distance_matrix
 
     @staticmethod
@@ -22,8 +21,7 @@ class DistanceMatrixDB:
         Write the content of this distance matrix to a file
         :return:
         """
-        with open(filename, 'wb') as output_file:
-            pickle.dump(DistanceMatrixDB.distance_matrix, output_file)
+        WriteFile.save(filename, DistanceMatrixDB.distance_matrix)
 
     @staticmethod
     def get_distance_matrix():

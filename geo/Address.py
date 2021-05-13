@@ -1,4 +1,4 @@
-from Geocoding import *
+from services.Geocoding import Geocoding
 
 
 class Address(object):

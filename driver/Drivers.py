@@ -1,6 +1,6 @@
 import sys
 
-from routing.route import get_route_distance
+from utils.route import get_route_distance
 
 
 class Drivers:

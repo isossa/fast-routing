@@ -1,12 +1,12 @@
 from IPython.core.display import display
 
-from Address import *
-from Geocoding import *
+from geo.Address import *
+from services.Geocoding import *
 from DistanceMatrix import *
 import pandas as pd
 import os
 
-from dataframeutils import standardize_dataframe_columns
+from utils.dataframeutils import standardize_dataframe_columns
 from routing import SavingsAlgorithm
 
 # Load addresses

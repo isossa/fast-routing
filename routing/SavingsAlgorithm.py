@@ -2,9 +2,9 @@ import itertools
 import random
 import sys
 
-from routing.route import node_is_active, add_link, set_node_status, get_link_status, is_interior, get_route_demand, \
+from utils.route import node_is_active, add_link, set_node_status, get_link_status, is_interior, get_route_demand, \
     get_route_distance
-from routing.savingsutils import get_maximum_savings
+from utils.savingsutils import get_maximum_savings
 
 
 def valid_assignment(route: tuple, demand: dict):
