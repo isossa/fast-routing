@@ -1,0 +1,20 @@
+{% extends "base_generic.html" %}
+
+{% block title%} <title> Drivers </title>{% endblock %}
+
+{% block content %}
+    <h1>Drivers</h1>
+    <p>Welcome to the drivers list</p>
+    {% if driver_list %}
+        <p>Select among existing drivers or create new ones to get started.</p>
+        <ul>
+            {% for driver in driver_list %}
+                <li>
+                    <a href="{{ driver.get_absolute_url }}">{{ driver.first_name }} {{ driver.last_name }}</a> {{ driver.role }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Create some drivers to get started. You can also select existing drivers.</p>
+    {% endif %}
+{% endblock %}

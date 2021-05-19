@@ -1,0 +1,19 @@
+{% extends "base_generic.html" %}
+
+{% block title%} <title> Home </title>{% endblock %}
+
+{% block content %}
+<h1>Fast Routing</h1>
+<br/>
+<h3>Welcome to FastRouting</h3>
+<p>Create some drivers to get started. You can also select existing drivers.</p>
+
+<br/>
+<h4>Some statistics</h4>
+
+<ul>
+  <li><strong>Number of Drivers:</strong> {{ num_drivers }}</li>
+  <li><strong>Number of Locations:</strong> {{ num_locations }}</li>
+  <li><strong>Number of Routes:</strong> {{ num_routes }}</li>
+</ul>
+{% endblock %}
