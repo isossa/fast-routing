@@ -1,8 +1,11 @@
 import pandas as pd
-from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 from django.views import generic
 
 from .base.services import Geocoding
+from .forms import BuildRouteForm
 from .models import Driver, Route, Location, Address
 from .base import common
 from .utils import dataframeutils
@@ -52,6 +55,46 @@ def update_address_db_helper(data):
             address_db.save()
 
 
+def route(request):
+    return render(request, 'route_home.html', context=None)
+
+
+def new_route(request):
+    return render(request, 'new_route.html', context=None)
+
+
+def export(request):
+    routes = Route.objects.all()
+    context = {
+        'routes': routes
+    }
+    return render(request, 'export_home.html', context=context)
+
+
+def build_routes(request):
+    return render(request, 'create_routes.html', context=None)
+
+
+def add_route(request):
+    if request.method == "POST":
+        # address = get_object_or_404(Address)
+        form = BuildRouteForm(request.POST)
+
+        if form.is_valid():
+            # Process data
+            # Do some processing
+            pass
+
+            # Redirect to a new URL:
+            return HttpResponseRedirect(reverse('create_routes'))
+
+    context = {
+        'route_form': BuildRouteForm(),
+        # 'driver_form': DriverForm()
+    }
+    return render(request, 'create_routes.html', context)
+
+
 def home(request):
     """
     View function for driver page of site.
@@ -62,11 +105,13 @@ def home(request):
     num_drivers = Driver.objects.all().count()
     num_routes = Route.objects.all().count()
     num_locations = Location.objects.all().count()
+    num_addresses = Address.objects.all().count()
 
     context = {
         'num_drivers': num_drivers,
         'num_locations': num_locations,
-        'num_routes': num_routes
+        'num_routes': num_routes,
+        'num_addresses': num_addresses
     }
 
     # Render the HTML template driver_list.html with the data in the context variable
@@ -90,6 +135,9 @@ class DriverListView(generic.ListView):
 
 class AddressListView(generic.ListView):
     model = Address
+
+    def get_queryset(self):
+        return Address.objects.order_by('country', 'state', 'city', 'street', 'zipcode')
 
 
 class DriverDetailView(generic.DetailView):

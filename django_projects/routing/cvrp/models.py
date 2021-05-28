@@ -1,5 +1,6 @@
 from django.db import models
 from django.urls import reverse
+
 from .base.common import Role
 
 
@@ -54,20 +55,36 @@ class Address(models.Model):
         return hash(self.coordinates)
 
 
+class Language(models.Model):
+    language = models.CharField(max_length=20, help_text='Select a language')
+
+    class Meta:
+        verbose_name = 'Language'
+        verbose_name_plural = 'Languages'
+
+    def __str__(self):
+        return f'{self.language}'
+
+    def get_absolute_url(self):
+        return reverse('language-detail', args=[str(self.id)])
+
+
 class Location(models.Model):
     address = models.OneToOneField(Address, on_delete=models.PROTECT)
     demand = models.PositiveIntegerField(default=0)
-    assigned = models.BooleanField(editable=False)
-    route = models.ForeignKey('Route', on_delete=models.PROTECT, editable=False)
-    created_on = models.DateTimeField(auto_now_add=True, null=True, editable=False)
+    assigned = models.BooleanField(editable=False, null=True, default=False)
+    route = models.ForeignKey('Route', on_delete=models.PROTECT, editable=False, null=True)
+    created_on = models.DateTimeField(auto_now_add=True, editable=False, null=True)
     last_modified = models.DateTimeField(auto_now=True, editable=False)
+
+    language = models.ManyToManyField(Language, help_text='Select a language')
 
     class Meta:
         verbose_name = 'Location'
         verbose_name_plural = 'Locations'
 
     def __str__(self):
-        return f'{self.address}; {self.demand}; {self.status}'
+        return f'{self.address}; {self.demand}'
 
     def get_absolute_url(self):
         return reverse('location-detail', args=[str(self.id)])
@@ -103,6 +120,7 @@ class Driver(models.Model):
     created_on = models.DateTimeField(auto_now_add=True, null=True, editable=False)
     last_modified = models.DateTimeField(auto_now=True, editable=False)
     availability_score = models.PositiveIntegerField(editable=False, default=0)
+    language = models.ManyToManyField(Language, help_text='Select a language')
 
     class Meta:
         verbose_name = 'Driver'
@@ -113,5 +131,3 @@ class Driver(models.Model):
 
     def get_absolute_url(self):
         return reverse('driver-detail', args=[str(self.id)])
-
-

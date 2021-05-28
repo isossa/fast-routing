@@ -1,0 +1,25 @@
+{% extends "base_generic.html" %}
+{% load crispy_forms_tags %}
+{% block title%} <title>New Routes | Fast Routing</title>{% endblock %}
+
+{% block content %}
+  <h3>New Routes</h3>
+
+  <form action="{% url 'new_route' %}" method="post" class="uniForm m-4">
+    {% csrf_token %}
+
+    {{ route_form|crispy}}
+<!--    <table class="m-4">-->
+<!--      {{ route_form.as_p }}-->
+<!--    </table>-->
+
+<!--    <table class="m-4">-->
+<!--      {{ driver_form.as_p }}-->
+<!--    </table>-->
+
+    <div class="d-flex align-items-center justify-content-center">
+      <input type="submit" value="Create Routes" class="btn btn-outline-primary">
+    </div>
+
+  </form>
+{% endblock %}

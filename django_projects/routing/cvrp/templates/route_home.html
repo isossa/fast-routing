@@ -1,0 +1,26 @@
+{% extends "base_generic.html" %}
+
+{% block title%} <title>Route | Fast Routing</title>{% endblock %}
+
+{% block content %}
+<h3>Routes</h3>
+
+<div class="container">
+  <div class="row align-items-center justify-content-center">
+    <p style="font-size:18px">Build and visualize delivery routes in a few clicks.</p>
+  </div>
+
+  <br/>
+
+  <div class="row align-items-center justify-content-center">
+    <p style="font-size:18px">View existing routes to get started. You can also create new routes.</p>
+  </div>
+
+  <br/>
+
+  <div class="d-flex align-items-center justify-content-center">
+    <a href="{% url 'export_home' %}" role="button" class="btn btn-outline-primary m-2">View Routes</a>
+    <a href="{% url 'create_routes' %}" role="button" class="btn btn-outline-primary m-2">Create Routes</a>
+  </div>
+</div>
+{% endblock %}
