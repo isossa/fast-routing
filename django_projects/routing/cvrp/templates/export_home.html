@@ -7,7 +7,9 @@
 
 <div class="container">
   {% if routes %}
-
+    {%for route in routes %}
+      <div class="row">{{ route }}</div>
+    {% endfor %}
   {% else %}
     <div class="row align-items-center justify-content-center p-4">
       <p style="font-size:18px">No routes to export!

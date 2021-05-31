@@ -1,13 +1,13 @@
 import pandas as pd
+from django.forms import modelformset_factory, formset_factory
 from django.http import HttpResponseRedirect
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
 
-from .base.services import Geocoding
-from .forms import BuildRouteForm
-from .models import Driver, Route, Location, Address
 from .base import common
+from .forms import BuildRouteForm, DriverForm, BaseDriverFormSet, LocationForm, BaseLocationFormSet
+from .models import Driver, Route, Location, Address
 from .utils import dataframeutils
 
 
@@ -76,6 +76,14 @@ def build_routes(request):
 
 
 def add_route(request):
+    number_drivers = Driver.objects.count()
+    DriverFormSet = formset_factory(DriverForm, formset=BaseDriverFormSet, extra=1, max_num=number_drivers)
+    driver_form = DriverFormSet()  # queryset=Driver.objects.none()
+
+    number_addresses = Address.objects.count()
+    LocationFormSet = formset_factory(LocationForm, formset=BaseLocationFormSet, extra=1, max_num=number_addresses)
+    location_form = LocationFormSet()
+
     if request.method == "POST":
         # address = get_object_or_404(Address)
         form = BuildRouteForm(request.POST)
@@ -90,7 +98,8 @@ def add_route(request):
 
     context = {
         'route_form': BuildRouteForm(),
-        # 'driver_form': DriverForm()
+        'driver_form': driver_form,
+        'location_form': location_form,
     }
     return render(request, 'create_routes.html', context)
 

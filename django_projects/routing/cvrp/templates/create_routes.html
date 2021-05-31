@@ -1,25 +1,137 @@
 {% extends "base_generic.html" %}
 {% load crispy_forms_tags %}
+
 {% block title%} <title>New Routes | Fast Routing</title>{% endblock %}
 
 {% block content %}
-  <h3>New Routes</h3>
+  <div class="text-center">
+    <h3>New Routes</h3>
+  </div>
 
-  <form action="{% url 'new_route' %}" method="post" class="uniForm m-4">
+  <br>
+
+  <form action="{% url 'new_route' %}" method="post">
     {% csrf_token %}
 
-    {{ route_form|crispy}}
-<!--    <table class="m-4">-->
-<!--      {{ route_form.as_p }}-->
-<!--    </table>-->
+    <div class="form-group">
+      <div class="form-row">
+        <div class="col-md-6">
+          <label id="id-departure">Departure</label>
+          {{ route_form.departure_field }}
+        </div>
 
-<!--    <table class="m-4">-->
-<!--      {{ driver_form.as_p }}-->
-<!--    </table>-->
+        <div class="col-md-6 row pl-4 pr-4">
+          <label id="id-vehicle-capacity">Vehicle Capacity</label>
+          {{ route_form.vehicle_capacity_field }}
+        </div>
+      </div>
+    </div>
 
-    <div class="d-flex align-items-center justify-content-center">
-      <input type="submit" value="Create Routes" class="btn btn-outline-primary">
+    <div class="form-group">
+      <label title="driver-form-group">Drivers</label>
+
+      {% for driver in driver_form %}
+        <div class="form-row driver-container">
+          <div class="col-md-10 mt-2">
+            {{ driver }}
+          </div>
+
+          <div class="col-md-2 row pl-4">
+            <button class="col btn btn-outline-danger btn-sm mt-2 mr-4 remove-driver-btn" type="button" disabled aria-disabled="true">Remove</button>
+          </div>
+        </div>
+      {% endfor %}
+
+      <div>
+        <button class="btn btn-outline-primary mt-2 mr-4 add-driver-btn" type="button">Add</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label title="location-form-group">Locations</label>
+
+      {% for location in location_form %}
+      <div class="form-row location-container">
+        <div class="col-md-6 mt-2">
+          {{ location.location_field }}
+        </div>
+
+        <div class="col-md-4 mt-2">
+          {{ location.demand_field }}
+        </div>
+
+        <div class="col-md-2 row pl-4">
+          <button class="col btn btn-outline-danger btn-sm mt-2 mr-4 remove-location-btn" type="button" disabled aria-disabled="true">Remove</button>
+        </div>
+      </div>
+      {% endfor %}
+
+      <div>
+        <button class="btn btn-outline-primary mt-2 mr-4 add-location-btn" type="button">Add</button>
+      </div>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-center m-4">
+      <button class="btn btn-outline-success" type="submit">Create Routes</button>
     </div>
 
   </form>
+
+  <div class="form-group driver-copy" style="display: none">
+    {% for driver in driver_form %}
+      <div class="form-row">
+        <div class="col-md-10 mt-2">
+          {{ driver }}
+        </div>
+
+        <div class="col-md-2 row pl-4">
+          <button class="col btn btn-outline-danger btn-sm mt-2 mr-4 remove-driver-btn" type="button">Remove</button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="form-group location-copy" style="display:none">
+    {% for location in location_form %}
+      <div class="form-row">
+        <div class="col-md-6 mt-2">
+          {{ location.location_field }}
+        </div>
+
+        <div class="col-md-4 mt-2">
+          {{ location.demand_field }}
+        </div>
+
+        <div class="col-md-2 row pl-4">
+          <button class="col btn btn-outline-danger btn-sm mt-2 mr-4 remove-location-btn" type="button">Remove</button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $("body").on("click", ".add-driver-btn", function(){
+        console.log("clicked add driver");
+        var index = $(".driver-copy").html();
+        $(".driver-container").after(index);
+      });
+
+      $("body").on("click", ".remove-driver-btn", function(){
+        console.log("clicked remove driver");
+        $(this).parents(".form-row").remove();
+      });
+
+      $("body").on("click", ".add-location-btn", function(){
+        console.log("clicked add location");
+        var index = $(".location-copy").html();
+        $(".location-container").after(index);
+      });
+
+      $("body").on("click", ".remove-location-btn", function(){
+        console.log("clicked remove location");
+        $(this).parents(".form-row").remove();
+      });
+    });
+  </script>
 {% endblock %}
