@@ -1,4 +1,4 @@
-from utils.WriteFile import WriteFile
+from ..utils.WriteFile import WriteFile
 
 
 class DistanceMatrixDB:

@@ -1,8 +1,8 @@
 import itertools
 import sys
 
-from geo.Address import Address
-from utils.WriteFile import WriteFile
+from ..base.common import Address
+from .WriteFile import WriteFile
 
 
 def get_maximum_savings(routes: dict, non_inserted: list, savings: dict) -> tuple:

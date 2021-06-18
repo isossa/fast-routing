@@ -1,10 +1,10 @@
 import random
 import sys
-import utils.route
 from enum import Enum
 
-import database
-import services
+from . import database
+from . import services
+from .. import utils
 
 
 class Role(Enum):

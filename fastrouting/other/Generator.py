@@ -1,11 +1,11 @@
 import pandas as pd
 from IPython.core.display import display
 
-from base import Address
+from fastrouting.base import Address
+from fastrouting.base.services import Geocoding
 from DistanceMatrix import DistanceMatrix
 
 # Build a list of Addresses
-from fastrouting.services import Geocoding
 
 add0 = Address(street='305 Elm St', city='Weston', state='NE', zipcode='68070')
 add1 = Address(street='2073 23rd St', city='Wahoo', state='NE', zipcode='68066')

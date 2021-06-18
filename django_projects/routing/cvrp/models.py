@@ -74,10 +74,10 @@ class Location(models.Model):
 
 
 class Route(models.Model):
-    demand = models.PositiveIntegerField(default=0, editable=False)
-    distance = models.PositiveIntegerField(default=0, editable=False)
+    demand = models.PositiveIntegerField(default=0)
+    distance = models.PositiveIntegerField(default=0)
     created_on = models.DateTimeField(auto_now_add=True, null=True, editable=False)
-    last_modified = models.DateTimeField(auto_now=True, editable=False)
+    last_modified = models.DateTimeField(auto_now=True)
     assigned_to = models.ForeignKey('Driver', on_delete=models.PROTECT)
 
     class Meta:

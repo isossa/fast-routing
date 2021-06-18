@@ -1,13 +1,11 @@
 from IPython.core.display import display
 
-from geo.Address import *
-from services.Geocoding import *
-from DistanceMatrix import *
+from fastrouting.other.DistanceMatrix import *
 import pandas as pd
 import os
 
-from utils.dataframeutils import standardize_dataframe_columns
-from routing import SavingsAlgorithm
+from fastrouting.utils.dataframeutils import standardize_dataframe_columns
+from fastrouting.routing import SavingsAlgorithm
 
 # Load addresses
 address_location = '..\\ISC Project\\ISC Project Code\\RandomAddresses.xlsx'

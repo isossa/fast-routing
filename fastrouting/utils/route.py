@@ -40,7 +40,7 @@ def __get_route_statistic(route_assigned: tuple, matrix: list) -> int:
     return statistic
 
 
-def get_route_info(route_assigned: tuple, matrix: list, demand: dict) -> tuple[int, int, int]:
+def get_route_info(route_assigned: tuple, matrix: list, demand: dict) -> tuple:
     """Return info of this route as demand and capacity
 
     :param route_assigned:
@@ -48,8 +48,10 @@ def get_route_info(route_assigned: tuple, matrix: list, demand: dict) -> tuple[i
     :param demand:
     :return:
     """
-    return get_route_demand(route_assigned, demand), get_route_distance(route_assigned, matrix), \
-           get_route_duration(route_assigned, matrix)
+    return (
+        get_route_demand(route_assigned, demand), get_route_distance(route_assigned, matrix),
+        get_route_duration(route_assigned, matrix)
+    )
 
 
 def get_routes(routes: dict) -> dict:
