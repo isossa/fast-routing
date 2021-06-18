@@ -15,12 +15,12 @@
 
     <div class="form-group">
       <div class="form-row">
-        <div class="col-md-6">
+        <div class="col-md-8">
           <label id="id-departure">Departure</label>
           {{ route_form.departure_field }}
         </div>
 
-        <div class="col-md-6 row pl-4 pr-4">
+        <div class="col-md-4 row pl-4 pr-3">
           <label id="id-vehicle-capacity">Vehicle Capacity</label>
           {{ route_form.vehicle_capacity_field }}
         </div>
@@ -28,7 +28,10 @@
     </div>
 
     <div class="form-group">
-      <label title="driver-form-group">Drivers</label>
+      <div class="d-flex flex-row justify-content-between">
+        <label title="driver-form-group">Drivers</label>
+        <a class="btn btn-outline-info btn-sm mr-4" type="link" role="button">New Driver</a>
+      </div>
 
       {% for driver in driver_form %}
         <div class="form-row driver-container">
@@ -37,7 +40,7 @@
           </div>
 
           <div class="col-md-2 row pl-4">
-            <button class="col btn btn-outline-danger btn-sm mt-2 mr-4 remove-driver-btn" type="button" disabled aria-disabled="true">Remove</button>
+            <button class="col btn btn-outline-danger btn-sm mt-2 mr-2 remove-driver-btn" type="button" disabled aria-disabled="true">Remove</button>
           </div>
         </div>
       {% endfor %}
@@ -48,7 +51,10 @@
     </div>
 
     <div class="form-group">
-      <label title="location-form-group">Locations</label>
+      <div class="d-flex flex-row justify-content-between">
+        <label title="location-form-group">Addresses</label>
+        <a class="btn btn-outline-info mr-4 btn-sm" type="link" role="button">New Address</a>
+      </div>
 
       {% for location in location_form %}
       <div class="form-row location-container">
@@ -61,7 +67,7 @@
         </div>
 
         <div class="col-md-2 row pl-4">
-          <button class="col btn btn-outline-danger btn-sm mt-2 mr-4 remove-location-btn" type="button" disabled aria-disabled="true">Remove</button>
+          <button class="col btn btn-outline-danger btn-sm mt-2 mr-2 remove-location-btn" type="button" disabled aria-disabled="true">Remove</button>
         </div>
       </div>
       {% endfor %}
