@@ -43,12 +43,13 @@ class SavingsDB:
         :param distance_map:
         :return:
         """
+        depot_coordinates = depot.coordinates_as_string()
         for origin in distance_map.keys():
-            if origin != depot:
+            if origin != depot_coordinates:
                 temp = dict()
                 for destination in distance_map[origin]:
-                    if destination != depot:
-                        value = distance_map[origin][depot] + distance_map[depot][destination]
+                    if destination != depot_coordinates:
+                        value = distance_map[origin][depot_coordinates] + distance_map[depot_coordinates][destination]
                         value -= distance_map[origin][destination]
                         temp.update({destination: value})
                 SavingsDB.savings_map[origin] = temp
@@ -56,7 +57,7 @@ class SavingsDB:
         return SavingsDB.savings_map
 
     @staticmethod
-    def get_sorted_map():
+    def get_sorted_savings_matrix():
         """ Rank savings matrix in descending order of magnitude
 
         :return:
