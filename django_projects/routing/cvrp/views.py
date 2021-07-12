@@ -4,9 +4,11 @@ import pandas as pd
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory, formset_factory, forms
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import generic
+from urllib.parse import urlencode
+from urllib.request import urlopen
 
 from . import common, services, algorithms
 from .forms import DriverForm, BaseDriverFormSet, LocationForm, BaseLocationFormSet, DefaultForm, DriverFormSetHelper
@@ -15,6 +17,7 @@ from .utils import dataframeutils
 from .utils.savingsutils import SavingsDB
 
 import os
+import uuid
 
 
 def load_addresses_from_xls(filename):
@@ -103,7 +106,13 @@ def route(request):
 
 
 def new_route(request):
-    return render(request, 'new_route.html', context=None)
+    context = {
+        'routes_assigned': request.session.get('routes_assigned'),
+        'all_routes': request.session.get('all_routes'),
+        'location_assigned':  request.session.get('location_assigned'),
+        'all_assigned': request.session.get('all_assigned')
+    }
+    return render(request, 'new_route.html', context=context)
 
 
 def export(request):
@@ -151,6 +160,179 @@ setup()
 
 # print(SavingsDB.compute_saving_matrix(DistanceMatrixDB.distance_matrix, add1))
 
+def get_drivers(driver_formset):
+    driver_set = []
+    for driver_data in driver_formset.cleaned_data:
+        if driver_data:
+            driver_obj = str2driver(driver_data['driver_field'])
+            result_set = Driver.objects.filter(first_name__exact=driver_obj.first_name, last_name__exact=driver_obj.last_name, role__exact=driver_obj.role)
+            driver_set.append(result_set[0])
+    return driver_set
+
+
+def get_locations(location_formset, geocodes):
+    if not geocodes:
+        geocodes = []
+    location_set = []
+    for location_data in location_formset.cleaned_data:
+        if location_data:
+            location_address = location_data['location_field']
+            address_obj = str2address(location_address)
+            result_set = Address.objects.filter(street__exact = address_obj.street, city__exact = address_obj.city, state__exact = address_obj.state, zipcode__exact = address_obj.zipcode)
+            
+            add = result_set[0]
+            geocodes.append(get_geocode(add))
+            location_db = Location(address=add, demand=location_data['demand_field'])
+            location_set.append(location_db)
+    return location_set, geocodes
+
+
+def get_driver_availability(driver_set: list, location_set: list) -> dict:
+    availability_map = {}
+    for driver in driver_set:
+        temp = {}
+        for location in location_set:
+            if driver.language.all().intersection(location.address.language.all()):
+                temp[get_geocode(location.address)] = 1
+            else:
+                temp[get_geocode(location.address)] = 0
+        availability_map[driver.first_name + ' ' + driver.last_name + ' ' + driver.role] = temp
+    return availability_map
+
+
+def run_solver(default_formset, driver_formset, location_formset):
+    home_depot_obj = str2address(default_formset.cleaned_data[0]['departure_field'])
+    vehicle_capacity = int(default_formset.cleaned_data[0]['vehicle_capacity_field'])
+    geocodes = []
+
+    result_set = Address.objects.filter(street__exact = home_depot_obj.street, city__exact = home_depot_obj.city, state__exact = home_depot_obj.state, zipcode__exact = home_depot_obj.zipcode)
+
+    add = result_set[0]
+    print(add.coordinates)
+    geocodes.append(get_geocode(add))
+
+    print("\n\n")
+
+    driver_set = get_drivers(driver_formset)
+
+    print("\n\n")
+
+    location_set, geocodes = get_locations(location_formset, geocodes)
+
+    print(geocodes, end="\n\n\n")
+
+    # Prepare data for cvrp algorithm
+    distance_matrix = get_matrix(geocodes, matrix=DistanceMatrixDB.distance_matrix)
+
+    print("\n\n")
+
+    duration_matrix = get_matrix(geocodes, matrix=DurationMatrixDB.duration_matrix)
+
+    savings_matrix = SavingsDB.compute_saving_matrix(distance_matrix, home_depot_obj)
+
+    print(savings_matrix)
+
+    SavingsDB.get_sorted_savings_matrix()
+
+    print("\n\n")
+
+    print(SavingsDB.sorted_savings_map)
+
+    # Compute availability matrix
+    print("\n\n")
+    availability_map = get_driver_availability(driver_set, location_set)
+            
+    print("\n\n")
+
+    print(availability_map)
+
+    # Get availability scores
+    availability_scores = algorithms.get_availability_score(availability_map)
+
+    print("\n\n\n")
+
+    print("Availability scores: ", availability_scores)
+
+    print("\n\n")
+
+    # Ranking drivers by availability scores
+    sorted_availability_map = {}
+    for driver in availability_scores.keys():
+        sorted_availability_map[driver] = availability_map[driver]
+
+    print("Sorted availability map: ", sorted_availability_map)
+
+    print("\n\n\n")
+
+    # Display locations to be assigned
+    for location in location_set:
+        print(location.address, location.assigned)
+
+    # Get demand by location
+    customers_demand = {}
+    for location in location_set:
+        customers_demand[get_geocode(location.address)] = location.demand
+
+    print("Customers demand: ", customers_demand)
+
+    # Marginal capacity not defined - Default to zero
+    marginal_capacity =  1
+
+    # Run CVRP Solver
+    print('Starting solver...', end="\n")
+
+    location_assigned = {get_geocode(location.address) : not location.assigned for location in location_set}
+    print("Location assigned ", location_assigned)
+    routes_assigned, all_routes, location_assigned, all_assigned = algorithms.assign_routes(sorted_savings=SavingsDB.sorted_savings_map, 
+    capacity=vehicle_capacity, demand=customers_demand, customers=location_assigned, availability_map=sorted_availability_map, marginal_capacity=marginal_capacity)
+
+    print('\n\n\n')
+
+    print("Solver output", end="\n\n")
+
+    print("Routes Assigned", routes_assigned, "\n")
+    print("All Routes", all_routes, end="\n")
+    print("All Assigned", all_assigned, end="\n")
+    print("Location assigned ", location_assigned)
+
+    # Post-processing
+    # location_map = {}
+
+    # for location in location_set:
+    #     location_map[get_geocode(location.address)] = location
+
+    # print('\n\n\n')
+    # routes_assigned_copy = []
+    # for driver, route in routes_assigned.items():
+    #     if route:
+    #         temp = []
+    #         route_id = uuid.uuid4()
+    #         print("DRIVER ASSIGNED ", driver)
+    #         driver_fields = driver.split('_')
+    #         driver_index = driver_fields[1]
+    #         driver_fields = driver_fields[0].split(' ')
+    #         driver_obj = common.Driver(first_name=driver_fields[0], last_name=driver_fields[1], role=driver_fields[2])
+    #         result_set = Driver.objects.filter(first_name__exact=driver_obj.first_name, last_name__exact=driver_obj.last_name, role__exact=driver_obj.role)
+    #         driver_obj = result_set[0]
+    #         for geocode in route:
+    #             location = location_map[geocode]
+    #             print(geocode, location)
+    #             location.route_id = route_id
+    #             location.assigned_to = driver_obj
+    #             location.assigned = True
+    #             location.save()
+    #             temp.append(location)
+    #         routes_assigned_copy.append(driver_obj)
+    #         routes_assigned_copy.extend(temp)        
+
+    
+    print('\n\n\n')
+    for location in location_set:
+        print(location)
+
+    print("\n\n\n")
+
+    return routes_assigned, all_routes, location_assigned, all_assigned
 
 
 def create_routes(request):
@@ -178,126 +360,11 @@ def create_routes(request):
             print(driver_formset.cleaned_data)
             print(location_formset.cleaned_data)
 
-            home_depot_obj = str2address(default_formset.cleaned_data[0]['departure_field'])
-            vehicle_capacity = int(default_formset.cleaned_data[0]['vehicle_capacity_field'])
-            geocodes = []
-
-            result_set = Address.objects.filter(street__exact = home_depot_obj.street, city__exact = home_depot_obj.city, state__exact = home_depot_obj.state, zipcode__exact = home_depot_obj.zipcode)
-
-            add = result_set[0]
-            print(add.coordinates)
-            geocodes.append(get_geocode(add))
-
-            print("\n\n")
-
-            driver_set = []
-            for driver_data in driver_formset.cleaned_data:
-                if driver_data:
-                    driver_obj = str2driver(driver_data['driver_field'])
-                    result_set = Driver.objects.filter(first_name__exact=driver_obj.first_name, last_name__exact=driver_obj.last_name, role__exact=driver_obj.role)
-                    driver_set.append(result_set[0])
-
-            print("\n\n")
-
-            location_set = []
-            # Process locations
-            for location_data in location_formset.cleaned_data:
-                if location_data:
-                    location_address = location_data['location_field']
-                    address_obj = str2address(location_address)
-                    result_set = Address.objects.filter(street__exact = address_obj.street, city__exact = address_obj.city, state__exact = address_obj.state, zipcode__exact = address_obj.zipcode)
-                    
-                    add = result_set[0]
-                    geocodes.append(get_geocode(add))
-                    location_db = Location(address=add, demand=location_data['demand_field'])
-                    location_set.append(location_db)
-
-            print(geocodes, end="\n\n\n")
-
-            # Prepare data for cvrp algorithm
-            distance_matrix = get_matrix(geocodes, matrix=DistanceMatrixDB.distance_matrix)
-
-            print("\n\n")
-
-            duration_matrix = get_matrix(geocodes, matrix=DurationMatrixDB.duration_matrix)
-
-            savings_matrix = SavingsDB.compute_saving_matrix(distance_matrix, home_depot_obj)
-
-            print(savings_matrix)
-
-            SavingsDB.get_sorted_savings_matrix()
-
-            print("\n\n")
-
-            print(SavingsDB.sorted_savings_map)
-
-            # Compute availability matrix
-            print("\n\n")
-            availability_map = {}
-            for driver in driver_set:
-                temp = {}
-                for location in location_set:
-                    if driver.language.all().intersection(location.address.language.all()):
-                        temp[get_geocode(location.address)] = 1
-                    else:
-                        temp[get_geocode(location.address)] = 0
-                availability_map[driver.first_name + ' ' + driver.last_name + ' ' + driver.role] = temp
-                    
-                print("\n\n")
-
-            print(availability_map)
-
-            # Get availability scores
-            availability_scores = algorithms.get_availability_score(availability_map)
-
-            print("\n\n\n")
-
-            print("Availability scores: ", availability_scores)
-
-            print("\n\n")
-
-            # Ranking drivers by availability scores
-            sorted_availability_map = {}
-            for driver in availability_scores.keys():
-                sorted_availability_map[driver] = availability_map[driver]
-
-            print("Sorted availability map: ", sorted_availability_map)
-
-            print("\n\n\n")
-
-            # Display locations to be assigned
-            for location in location_set:
-                print(location.address, location.assigned)
-
-            # Get demand by location
-            customers_demand = {}
-            for location in location_set:
-                customers_demand[get_geocode(location.address)] = location.demand
-
-            print("Customers demand: ", customers_demand)
-
-            # Marginal capacity not defined - Default to zero
-
-            # Run CVRP Solver
-            print('Starting solver...', end="\n")
-
-            location_assigned = {get_geocode(location.address) : not location.assigned for location in location_set}
-            print("Location assigned ", location_assigned)
-            routes_assigned, all_routes, location_assigned, all_assigned = algorithms.assign_routes(sorted_savings=SavingsDB.sorted_savings_map, 
-            capacity=vehicle_capacity, demand=customers_demand, customers=location_assigned, availability_map=sorted_availability_map)
-
-            print('\n\n\n')
-
-            print("Solver output", end="\n\n")
-
-            print("Routes Assigned", routes_assigned, "\n")
-            print("All Routes", all_routes, end="\n")
-            print("All Assigned", all_assigned, end="\n")
-            for address in location_assigned:
-                print(address)
-
-
-            print("\n\n\n")
+            routes_assigned, all_routes, location_assigned, all_assigned = run_solver(default_formset, driver_formset, location_formset)
+            request.session['routes_assigned'] = routes_assigned
+            request.session['all_routes'] = all_routes
+            request.session['location_assigned'] = location_assigned
+            request.session['all_assigned'] = all_assigned
 
             # Redirect to a new URL:
             return HttpResponseRedirect(reverse('new_route'))

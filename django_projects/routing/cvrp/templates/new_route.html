@@ -17,6 +17,24 @@
 <!--  </div>-->
 
 <!--  <br/>-->
+  {% for driver in routes_assigned %}
+    <div>
+      {{ driver}}
+    </div>
+    <br/> <br/>
+  {% endfor %}
+  <br/> <br/>
+  {{ request }}
+  <br/> <br/>
+  {{ request.session }}
+  <br/> <br/>
+  {{ routes_assigned }}
+  <br/> <br/>
+  {{ all_routes }}
+  <br/> <br/>
+  {{ location_assigned }}
+  <br/> <br/>
+  {{ all_assigned }}
 
   <div class="d-flex align-items-center justify-content-center">
     <a href="" role="button" class="btn btn-outline-primary p-2">Export Routes</a>

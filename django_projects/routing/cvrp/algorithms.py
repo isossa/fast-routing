@@ -247,7 +247,9 @@ def run_feasible_assignment(sorted_savings: dict, capacity: int, demand: dict, c
                                                                                  marginal_capacity)
         elif len(locations) == 1:
             d = next(iter(locations.values()))
+            print('FROM RUN FEASIBLE ASSIGNMENT - BEFORE IF')
             if capacity - d == 1:
+                print('FROM RUN FEASIBLE ASSIGNMENT - INSIDE IF')
                 routes_assignment = insert_last_customer(routes_assignment, sorted_savings,
                                                          capacity + marginal_capacity,
                                                          demand, locations)

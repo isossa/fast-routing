@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.urls import reverse
 
@@ -56,11 +57,11 @@ class Language(models.Model):
 
 
 class Location(models.Model):
-    address = models.OneToOneField(Address, on_delete=models.PROTECT)
+    address = models.ForeignKey(Address, on_delete=models.PROTECT)
     demand = models.PositiveIntegerField(default=0)
     assigned = models.BooleanField(editable=False, null=True, default=False)
     assigned_to = models.ForeignKey('Driver', on_delete=models.PROTECT, null=True)
-    route = models.ForeignKey('Route', on_delete=models.PROTECT, null=True)
+    route_id = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=False)
     created_on = models.DateTimeField(auto_now_add=True, editable=False, null=True)
     last_modified = models.DateTimeField(auto_now=True, editable=False)
 
