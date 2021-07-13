@@ -107,7 +107,7 @@ def route(request):
 
 def new_route(request):
     context = {
-        'routes_assigned': request.session.get('routes_assigned'),
+        'routes_assigned': request.session.get('routes_assigned').items(),
         'all_routes': request.session.get('all_routes'),
         'location_assigned':  request.session.get('location_assigned'),
         'all_assigned': request.session.get('all_assigned')
@@ -116,7 +116,7 @@ def new_route(request):
 
 
 def export(request):
-    routes = Route.objects.all()
+    routes = Location.objects.all()
     context = {
         'routes': routes
     }
@@ -325,6 +325,25 @@ def run_solver(default_formset, driver_formset, location_formset):
     #         routes_assigned_copy.append(driver_obj)
     #         routes_assigned_copy.extend(temp)        
 
+    routes_result = {}
+    for driver in routes_assigned.keys():
+        if routes_assigned[driver]:
+            driver_fields = driver.split('_')
+            driver_index = driver_fields[1]
+            driver_fields = driver_fields[0].split(' ')
+            driver_name = driver_fields[0] + ' ' + driver_fields[1]
+            print(driver_name)
+            temp = []
+            temp.append(str(home_depot_obj))
+            for geocode in routes_assigned[driver]:
+                coordinates = '(' + geocode + ')'
+                result_set = Address.objects.filter(coordinates__exact=coordinates)
+                print('\t', result_set[0])
+                temp.append(str(result_set[0]))
+            print('\n')
+            temp.append(str(home_depot_obj))
+            routes_result[driver_name] = temp
+
     
     print('\n\n\n')
     for location in location_set:
@@ -332,7 +351,7 @@ def run_solver(default_formset, driver_formset, location_formset):
 
     print("\n\n\n")
 
-    return routes_assigned, all_routes, location_assigned, all_assigned
+    return routes_result, all_routes, location_assigned, all_assigned
 
 
 def create_routes(request):
