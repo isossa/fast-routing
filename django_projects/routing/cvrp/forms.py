@@ -1,5 +1,5 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Row, Column, Submit, Fieldset, Button, Div
+from crispy_forms.layout import Layout, Row, Column, Fieldset, Button, Div
 from django import forms
 from django.forms import BaseFormSet
 
@@ -8,7 +8,17 @@ from .models import Address, Driver
 
 def get_addresses():
     address_choices = list()
-    addresses = Address.objects.all().order_by('zipcode', 'country', 'state', 'city', 'street')
+    addresses = Address.objects.filter(is_home_depot__exact=0).order_by('zipcode', 'country', 'state', 'city', 'street')
+
+    for address in addresses:
+        address_choices.append((address.__str__(), address.__str__()))
+
+    return address_choices
+
+
+def get_home_depot():
+    address_choices = list()
+    addresses = Address.objects.filter(is_home_depot__exact=1).order_by('zipcode', 'country', 'state', 'city', 'street')
 
     for address in addresses:
         address_choices.append((address.__str__(), address.__str__()))
@@ -41,7 +51,7 @@ class BaseLocationFormSet(BaseFormSet):
 
 
 class DefaultForm(forms.Form):
-    address_choices = get_addresses()
+    address_choices = get_home_depot()
     departure_choices = [('', 'Select Starting Location')]
     departure_choices.extend(address_choices)
     departure_field = forms.ChoiceField(

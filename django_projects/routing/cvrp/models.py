@@ -16,6 +16,7 @@ class Address(models.Model):
     longitude = models.CharField(max_length=200, editable=False, default="")
     coordinates = models.CharField(max_length=200, editable=False, default="")
     info = models.TextField(default="", editable=False)
+    is_home_depot = models.BooleanField(default=False)
 
     created_on = models.DateTimeField(auto_now_add=True, null=True, editable=False)
     last_modified = models.DateTimeField(auto_now=True, editable=False)
@@ -101,7 +102,7 @@ class Driver(models.Model):
         (Role.NONE.name, Role.NONE.value)
     )
 
-    first_name = models.CharField(max_length=200, blank=False, choices=ROLE)
+    first_name = models.CharField(max_length=200, blank=False)
     last_name = models.CharField(max_length=200, blank=False)
     role = models.CharField(max_length=20, choices=ROLE, default="None")
     created_on = models.DateTimeField(auto_now_add=True, null=True, editable=False)

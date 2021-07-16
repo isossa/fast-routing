@@ -2,7 +2,7 @@ import itertools
 import random
 import sys
 
-from .utils.route import node_is_active, add_link, set_node_status, get_link_status, is_interior, \
+from .utils.route import get_route_duration, node_is_active, add_link, set_node_status, get_link_status, is_interior, \
     get_route_demand, get_route_distance
 from .utils.savingsutils import get_maximum_savings
 from .utils.route import get_route_demand
@@ -12,7 +12,7 @@ def valid_assignment(route: tuple, demand: dict):
     pass
 
 
-def update_route(link: tuple, route: tuple, capacity: int, demand: dict, locations: dict) -> tuple:
+def update_route(link: tuple, route: tuple, capacity: int, demand: dict, duration_matrix: dict, locations: dict) -> tuple:
     """Update routes
 
     :param link:
@@ -34,6 +34,7 @@ def update_route(link: tuple, route: tuple, capacity: int, demand: dict, locatio
         if ((i in route) ^ (j in route)) and get_link_status(link, locations):
             if i in route and not is_interior(i, route) and node_is_active(j, locations):
                 expected_demand = get_route_demand(route, demand) + demand[j]
+                expected_duration = get_route_duration(route, duration_matrix) + 10
                 if expected_demand <= capacity:
                     route = add_link(j, i, route)
                     set_node_status(i, locations, False)
@@ -126,7 +127,7 @@ def get_driver_with_shortest_distance(route_assigned: dict, matrix: list) -> tup
 
 
 def run_restricted_assignment(sorted_savings: dict, capacity: int, demand: dict, customers: dict,
-                              availability_map: dict):
+                              availability_map: dict, duration_matrix: dict):
     """Assign routes to drivers under constraints
 
     :param sorted_savings:
@@ -143,7 +144,7 @@ def run_restricted_assignment(sorted_savings: dict, capacity: int, demand: dict,
             route = routes_assignment[driver]
             if can_deliver_to_link(driver, link, availability_map, False) and get_link_status(link, customers):
                 previous_route = route
-                route = update_route(link, route, capacity, demand, customers)
+                route = update_route(link, route, capacity, demand, duration_matrix, customers)
                 if route != previous_route:
                     routes_assignment[driver] = route
                     break
@@ -151,7 +152,7 @@ def run_restricted_assignment(sorted_savings: dict, capacity: int, demand: dict,
 
 
 def insert_on_margin(routes: dict, sorted_savings: dict, capacity: int, demand: dict, customers: dict,
-                     marginal_capacity: int) -> tuple:
+                     marginal_capacity: int, duration_matrix: dict) -> tuple:
     """Insert customers to existing routes if doing this does not exceed a certain THRESHOLD
 
     :param routes:
@@ -171,7 +172,7 @@ def insert_on_margin(routes: dict, sorted_savings: dict, capacity: int, demand: 
         expected_capacity = get_route_demand(route, demand) + demand[location]
         relaxed_capacity = capacity + marginal_capacity
         # print(f'FLAG {driver}, {location}')
-        route = update_route(link, route, relaxed_capacity, demand, customers)
+        route = update_route(link, route, relaxed_capacity, demand, duration_matrix, customers)
         if previous_route != route:
             routes[driver] = route
             print('FROM INSERT ON MARGIN')
@@ -181,7 +182,7 @@ def insert_on_margin(routes: dict, sorted_savings: dict, capacity: int, demand: 
     return routes, remaining_locations, customers
 
 
-def insert_last_customer(routes: dict, savings: dict, capacity: int, demand: dict, customers: dict):
+def insert_last_customer(routes: dict, savings: dict, capacity: int, demand: dict, duration_matrix: dict, customers: dict):
     """Insert last customer to exiting routes, whenever that is possible
 
     :param routes:
@@ -221,8 +222,7 @@ def insert_last_customer(routes: dict, savings: dict, capacity: int, demand: dic
 
 
 def run_feasible_assignment(sorted_savings: dict, capacity: int, demand: dict, customers: dict,
-                            availability_map: dict,
-                            marginal_capacity: int) -> tuple:
+                            availability_map: dict, duration_matrix: dict, marginal_capacity: int) -> tuple:
     """Build routes assuming
 
     :param sorted_savings:
@@ -240,11 +240,11 @@ def run_feasible_assignment(sorted_savings: dict, capacity: int, demand: dict, c
     while len(locations) > 0 and iteration_counter < 10:
         if len(locations) == len(customers):
             routes_assignment, locations = run_restricted_assignment(sorted_savings, capacity, demand,
-                                                                     locations, availability_map)
+                                                                     locations, availability_map, duration_matrix)
         elif len(locations) > 1:
             routes_assignment, remaining_locations, locations = insert_on_margin(routes_assignment, sorted_savings,
                                                                                  capacity, demand, locations,
-                                                                                 marginal_capacity)
+                                                                                 marginal_capacity, duration_matrix)
         elif len(locations) == 1:
             d = next(iter(locations.values()))
             print('FROM RUN FEASIBLE ASSIGNMENT - BEFORE IF')
@@ -252,7 +252,7 @@ def run_feasible_assignment(sorted_savings: dict, capacity: int, demand: dict, c
                 print('FROM RUN FEASIBLE ASSIGNMENT - INSIDE IF')
                 routes_assignment = insert_last_customer(routes_assignment, sorted_savings,
                                                          capacity + marginal_capacity,
-                                                         demand, locations)
+                                                         demand, duration_matrix, locations)
 
         customers.update(locations)
         locations = {customer: status for customer, status in customers.items() if status}
@@ -263,7 +263,7 @@ def run_feasible_assignment(sorted_savings: dict, capacity: int, demand: dict, c
     return routes_assignment, all_routes, customers, all_assigned
 
 
-def build_routes(sorted_savings: dict, capacity: int, demand: dict, customers: dict, availability_map: dict,
+def build_routes(sorted_savings: dict, capacity: int, demand: dict, customers: dict, availability_map: dict, duration_matrix: dict,
                  marginal_capacity: int) -> tuple:
     iteration = 0
     all_assigned = False
@@ -282,7 +282,7 @@ def build_routes(sorted_savings: dict, capacity: int, demand: dict, customers: d
         print("\nCustomer to assigned - BUILD ROUTES - Iteration ", iteration, customers_to_assign, "\n\n\n")
 
         routes_assignment_new, all_routes_new, customers_new, all_assigned = \
-            run_feasible_assignment(sorted_savings, capacity, demand, customers_to_assign, dummy_drivers,
+            run_feasible_assignment(sorted_savings, capacity, demand, customers_to_assign, dummy_drivers, duration_matrix,
                                     marginal_capacity)
 
         routes_assignment.update(routes_assignment_new)
@@ -292,7 +292,7 @@ def build_routes(sorted_savings: dict, capacity: int, demand: dict, customers: d
     return routes_assignment, all_routes, customers, all_assigned
 
 
-def assign_routes(sorted_savings: dict, capacity: int, demand: dict, customers: dict, availability_map: dict,
+def assign_routes(sorted_savings: dict, capacity: int, demand: dict, customers: dict, availability_map: dict, duration_matrix: dict, 
                   marginal_capacity: int = 0) -> tuple:
     """Build routes
 
@@ -306,7 +306,7 @@ def assign_routes(sorted_savings: dict, capacity: int, demand: dict, customers: 
     """
 
     routes_assignment, all_routes, customers, all_assigned = \
-        build_routes(sorted_savings, capacity, demand, customers, availability_map, marginal_capacity)
+        build_routes(sorted_savings, capacity, demand, customers, availability_map, duration_matrix, marginal_capacity)
 
     return routes_assignment, all_routes, customers, all_assigned
 

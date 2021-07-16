@@ -64,14 +64,14 @@ def refresh():
         address.save()
 
 
-def get_distance_matrix():
+def get_matrices():
     address_list = []
     for address in Address.objects.all():
         print(address, address.coordinates)
         address_obj = common.Address(street=address.street, city=address.city, state=address.state, country=address.country, zipcode=address.zipcode)
         address_list.append(address_obj)
 
-    DistanceMatrixDB.distance_matrix, DurationMatrixDB.duration_matrix, response = services.DistanceMatrix.request_matrix(address_list[:5], os.environ['BING_MAPS_API_KEY'], 'driving', 1)
+    DistanceMatrixDB.distance_matrix, DurationMatrixDB.duration_matrix, response = services.DistanceMatrix.request_matrix(address_list, os.environ['BING_MAPS_API_KEY'], 'driving', 1)
 
     print(response)
 
@@ -145,7 +145,7 @@ def get_geocode(address: Address) -> str:
     coordinates = address.coordinates
     return coordinates[1:len(coordinates) - 1]
 
-# get_distance_matrix()
+# get_matrices()
 setup()
 # print("\n")
 # print(DistanceMatrixDB.distance_matrix)
@@ -283,8 +283,8 @@ def run_solver(default_formset, driver_formset, location_formset):
 
     location_assigned = {get_geocode(location.address) : not location.assigned for location in location_set}
     print("Location assigned ", location_assigned)
-    routes_assigned, all_routes, location_assigned, all_assigned = algorithms.assign_routes(sorted_savings=SavingsDB.sorted_savings_map, 
-    capacity=vehicle_capacity, demand=customers_demand, customers=location_assigned, availability_map=sorted_availability_map, marginal_capacity=marginal_capacity)
+    routes_assigned, all_routes, location_assigned, all_assigned = algorithms.assign_routes(sorted_savings=SavingsDB.sorted_savings_map, capacity=vehicle_capacity, \
+        demand=customers_demand, customers=location_assigned, availability_map=sorted_availability_map, duration_matrix=duration_matrix, marginal_capacity=marginal_capacity)
 
     print('\n\n\n')
 
@@ -296,34 +296,34 @@ def run_solver(default_formset, driver_formset, location_formset):
     print("Location assigned ", location_assigned)
 
     # Post-processing
-    # location_map = {}
+    location_map = {}
 
-    # for location in location_set:
-    #     location_map[get_geocode(location.address)] = location
+    for location in location_set:
+        location_map[get_geocode(location.address)] = location
 
-    # print('\n\n\n')
-    # routes_assigned_copy = []
-    # for driver, route in routes_assigned.items():
-    #     if route:
-    #         temp = []
-    #         route_id = uuid.uuid4()
-    #         print("DRIVER ASSIGNED ", driver)
-    #         driver_fields = driver.split('_')
-    #         driver_index = driver_fields[1]
-    #         driver_fields = driver_fields[0].split(' ')
-    #         driver_obj = common.Driver(first_name=driver_fields[0], last_name=driver_fields[1], role=driver_fields[2])
-    #         result_set = Driver.objects.filter(first_name__exact=driver_obj.first_name, last_name__exact=driver_obj.last_name, role__exact=driver_obj.role)
-    #         driver_obj = result_set[0]
-    #         for geocode in route:
-    #             location = location_map[geocode]
-    #             print(geocode, location)
-    #             location.route_id = route_id
-    #             location.assigned_to = driver_obj
-    #             location.assigned = True
-    #             location.save()
-    #             temp.append(location)
-    #         routes_assigned_copy.append(driver_obj)
-    #         routes_assigned_copy.extend(temp)        
+    print('\n\n\n')
+    routes_assigned_copy = []
+    for driver, route in routes_assigned.items():
+        if route:
+            temp = []
+            route_id = uuid.uuid4()
+            print("DRIVER ASSIGNED ", driver)
+            driver_fields = driver.split('_')
+            driver_index = driver_fields[1]
+            driver_fields = driver_fields[0].split(' ')
+            driver_obj = common.Driver(first_name=driver_fields[0], last_name=driver_fields[1], role=driver_fields[2])
+            result_set = Driver.objects.filter(first_name__exact=driver_obj.first_name, last_name__exact=driver_obj.last_name, role__exact=driver_obj.role)
+            driver_obj = result_set[0]
+            for geocode in route:
+                location = location_map[geocode]
+                print(geocode, location)
+                location.route_id = route_id
+                location.assigned_to = driver_obj
+                location.assigned = True
+                location.save()
+                temp.append(location)
+            routes_assigned_copy.append(driver_obj)
+            routes_assigned_copy.extend(temp)        
 
     routes_result = {}
     for driver in routes_assigned.keys():
@@ -361,9 +361,9 @@ def create_routes(request):
     LocationFormSet = formset_factory(LocationForm, formset=BaseLocationFormSet, max_num=number_addresses)
     DefaultFormset = formset_factory(DefaultForm)
 
-    # print("CREATE ROUTES")
-    # print(request.POST)
-    # print(request.get_full_path())
+    print("CREATE ROUTES")
+    print(request.POST)
+    print(request.get_full_path())
     if request.method == "POST":
         driver_formset = DriverFormSet(request.POST, prefix='drivers')  # queryset=Driver.objects.none()
         location_formset = LocationFormSet(request.POST, prefix='locations')
@@ -449,4 +449,3 @@ class AddressListView(generic.ListView):
 
 class DriverDetailView(generic.DetailView):
     model = Driver
-
