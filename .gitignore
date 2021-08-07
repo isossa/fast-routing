@@ -160,3 +160,9 @@ pip-selfcheck.json
 Fast Routing.iml
 .ipynb_checkpoints
 *.ipynb
+
+# Text backup files
+*.bak
+
+# Database
+*.sqlite3
