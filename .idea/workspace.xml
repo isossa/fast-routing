@@ -2,57 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d982ecf3-de13-4cfb-bfd7-e3b0044b9d65" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Procfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cache/test_distance_matrix" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cache/test_duration_matrix" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/admin.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/algorithms.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/apps.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/base/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/base/algorithms.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/base/common.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/base/database.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/base/services.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/common.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/database.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/forms.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/migrations/0001_initial.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/migrations/0002_alter_address_is_home_depot.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/migrations/0003_alter_driver_first_name.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/migrations/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/models.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/services.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/signals.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/static/css/styles.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/static/js/jquery-3.6.0.min.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/static/js/jquery.formset.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/templates/base_generic.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/templates/create_routes.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/templates/cvrp/address_list.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/templates/cvrp/driver_detail.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/templates/cvrp/driver_list.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/templates/export_home.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/templates/home.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/templates/new_route.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/templates/route_home.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/tests.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/urls.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/utils/ReadFile.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/utils/WriteFile.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/utils/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/utils/dataframeutils.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/utils/matrixutils.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/utils/route.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/utils/savingsutils.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cvrp/views.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/RandomAddresses.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/RandomAddresses.xlsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/db.sqlite3" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/manage.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/runtime.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
