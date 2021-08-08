@@ -1,0 +1,10 @@
+{% extends "base_generic.html" %}
+
+{% block title%} <title>Drivers | Fast Routing</title>{% endblock %}
+
+{% block content %}
+    <h1>Driver: {{ driver.first_name }} {{ driver.last_name }}</h1>
+    <p><strong>First Name:</strong> {{ driver.first_name }} </p>
+    <p><strong>Last Name:</strong> {{ driver.last_name }} </p>
+    <p><strong>Role:</strong> {{ driver.role }} </p>
+{% endblock %}

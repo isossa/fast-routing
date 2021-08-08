@@ -1,0 +1,20 @@
+{% extends "base_generic.html" %}
+
+{% block title%} <title>Addresses | Fast Routing</title>{% endblock %}
+
+{% block content %}
+  <h3>Addresses</h3>
+
+  {% if address_list %}
+    <p>List of Addresses</p>
+    <ul>
+      {% for address in address_list %}
+      <li>
+        <a href="{{ address.get_absolute_url }}">{{ address.street }}, {{ address.city }}, {{ address.state }}, {{ address.country }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Add some addresses to get started.</p>
+  {% endif %}
+{% endblock %}

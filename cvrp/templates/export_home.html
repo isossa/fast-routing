@@ -1,0 +1,20 @@
+{% extends "base_generic.html" %}
+
+{% block title%} <title>Export | Fast Routing</title>{% endblock %}
+
+{% block content %}
+<h3>Export</h3>
+
+<div class="container">
+  {% if routes %}
+    {%for route in routes %}
+      <div class="row">{{ route }}</div>
+    {% endfor %}
+  {% else %}
+    <div class="row align-items-center justify-content-center p-4">
+      <p style="font-size:18px">No routes to export!
+        <a href="{% url 'create_routes' %}">Build</a> and visualize delivery routes in a few clicks.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends "base_generic.html" %}
+{% load crispy_forms_tags %}
+
+{% block title%} <title>New Routes | Fast Routing</title>{% endblock %}
+
+{% block content %}
+  <div class="text-center">
+    <h3>New Routes</h3>
+  </div>
+
+  <br>
+
+  <form id="dataForm" method="POST">
+    {% csrf_token %}
+
+    <div class="form-group" required>
+      {% for default_form in default_formset%}
+      <div class="form-row">
+        <div class="col-md-8">
+          <label id="id-departure">Departure</label>
+          {{ default_form.departure_field }}
+        </div>
+
+        <div class="col-md-4 row pl-4 pr-3">
+          <label id="id-vehicle-capacity">Vehicle Capacity</label>
+          {{ default_form.vehicle_capacity_field }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {{ default_formset.management_form }}
+
+    <div class="form-group">
+      <div class="d-flex flex-row justify-content-between">
+        <label title="driver-form-group">Drivers</label>
+        <a class="btn btn-outline-info btn-sm mr-4" type="link" role="button">New Driver</a>
+      </div>
+
+      <div class="driver-container">
+        {% for driver_form in driver_formset %}
+        <div class="row driver-row spacer col-8 mt-2">
+            <div class="input-group">
+              {{ driver_form }}
+              <div class="input-group-append">
+                <button class="btn btn-success add-driver-row" type="button">+</button>
+              </div>
+            </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {{ driver_formset.management_form }}
+
+    <div class="form-group">
+      <div class="d-flex flex-row justify-content-between">
+        <label title="location-form-group">Locations</label>
+        <a class="btn btn-outline-info btn-sm mr-4" type="link" role="button">New Location</a>
+      </div>
+
+      <div class="location-container">
+        {% for location_form in location_formset %}
+        <div class="row location-row spacer col-8 mt-2">
+            <div class="input-group">
+              {{ location_form.location_field }}
+              
+              <div class="input-group-append">
+                {{ location_form.demand_field }}
+              </div>
+
+              <div class="input-group-append">
+                <button class="btn btn-success add-location-row" type="button">+</button>
+              </div>
+            </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {{ location_formset.management_form }}
+
+    <div class="d-flex align-items-center justify-content-center m-4">
+      <button class="btn btn-outline-success" type="submit">Create Routes</button>
+    </div>
+
+  </form>
+
+  <div class="form-group driver-copy-new" style="display: none">
+      <div class="form-row">
+        <div class="col-md-10 mt-2">
+          {{ driver_formset.empty_form }}
+        </div>
+
+        <div class="col-md-2 row pl-4">
+          <button class="col btn btn-outline-danger btn-sm mt-2 mr-2 remove-driver-btn" type="button">Remove</button>
+        </div>
+      </div>
+  </div>
+
+  <div class="form-group location-copy" style="display:none">
+    {% for location_form in location_formset %}
+      <div class="form-row">
+        <div class="col-md-6 mt-2">
+          {{ location_form.location_field }}
+        </div>
+
+        <div class="col-md-4 mt-2">
+          {{ location_form.demand_field }}
+        </div>
+
+        <div class="col-md-2 row pl-4">
+          <button class="col btn btn-outline-danger btn-sm mt-2 mr-2 remove-location-btn" type="button">Remove</button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+
+  <script type="text/javascript">
+    function updateElementIndex(el, prefix, ndx) {
+      var id_regex = new RegExp('(' + prefix + '-\\d+)');
+      var replacement = prefix + '-' + ndx;
+      if ($(el).attr("for")) $(el).attr("for", $(el).attr("for").replace(id_regex, replacement));
+      if (el.id) el.id = el.id.replace(id_regex, replacement);
+      if (el.name) el.name = el.name.replace(id_regex, replacement);
+    }
+
+    function cloneMore(selector, prefix, element_name) {
+      var newElement = $(selector).clone(true);
+      var total = $('#id_' + prefix + '-TOTAL_FORMS').val();
+      newElement.find(':input:not([type=button]):not([type=submit]):not([type=reset])').each(function() {
+          var name = $(this).attr('name').replace('-' + (total-1) + '-', '-' + total + '-');
+          var id = 'id_' + name;
+          $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+      });
+      newElement.find('label').each(function() {
+          var forValue = $(this).attr('for');
+          if (forValue) {
+            forValue = forValue.replace('-' + (total-1) + '-', '-' + total + '-');
+            $(this).attr({'for': forValue});
+          }
+          console.log(forValue);
+      });
+      total++;
+      $('#id_' + prefix + '-TOTAL_FORMS').val(total);
+      $(selector).after(newElement);
+
+      updateAddButton(element_name);
+      return false;
+  }
+
+  function updateAddButton(element_name) {
+    var conditionRow = $('.' + element_name + '-row:not(:last)');
+    conditionRow.find('.btn.add-' + element_name + '-row')
+    .removeClass('btn-success').addClass('btn-danger')
+    .removeClass('add-' + element_name + '-row').addClass('remove-' + element_name + '-row')
+    .html('-');
+  }
+
+  function deleteForm(prefix, btn, element_name) {
+    var total = parseInt($('#id_' + prefix + '-TOTAL_FORMS').val());
+    if (total > 1){
+        btn.closest('.' + element_name + '-row').remove();
+        var forms = $('.' + element_name + '-row');
+        $('#id_' + prefix + '-TOTAL_FORMS').val(forms.length);
+        for (var i=0, formCount=forms.length; i<formCount; i++) {
+            $(forms.get(i)).find(':input').each(function() {
+                updateElementIndex(this, prefix, i);
+            });
+        }
+    }
+    return false;
+  }
+
+  $(document).on('click', '.add-driver-row', function(e){
+    e.preventDefault();
+    cloneMore('.driver-row:last', 'drivers', 'driver');
+    console.log('Clicked addition');
+    return false;
+  });
+
+  $(document).on('click', '.remove-driver-row', function(e){
+      e.preventDefault();
+      deleteForm('drivers', $(this), 'driver');
+      console.log('Clicked deletion');
+      return false;
+  });
+
+  $(document).on('click', '.add-location-row', function(e){
+    e.preventDefault();
+    cloneMore('.location-row:last', 'locations', 'location');
+    console.log('Added location');
+    return false;
+  });
+
+  $(document).on('click', '.remove-location-row', function(e){
+      e.preventDefault();
+      deleteForm('locations', $(this), 'location');
+      console.log('Deleted location');
+      return false;
+  });
+  </script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base_generic.html" %}
+
+{% block title%} <title>Home | Fast Routing</title>{% endblock %}
+
+{% block content %}
+  <h3>Welcome</h3>
+
+  <div class="container">
+    <div class="row align-items-center justify-content-center m-4">
+      <p style="font-size:18px">Create some drivers to get started. You can also select existing drivers.</p>
+    </div>
+
+  </div>
+
+  <br/>
+
+  <h4>Some statistics</h4>
+
+  <ul>
+    <li><strong>Number of Drivers:</strong> {{ num_drivers }}</li>
+    <li><strong>Number of Addresses:</strong> {{ num_addresses }}</li>
+    <li><strong>Number of Locations Served:</strong> {{ num_locations }}</li>
+    <li><strong>Number of Routes Built:</strong> {{ num_routes }}</li>
+  </ul>
+
+  <div class="d-flex align-items-center justify-content-center">
+    <a href="{% url 'export_home' %}" role="button" class="btn btn-outline-primary m-2">View Routes</a>
+    <a href="{% url 'create_routes' %}" role="button" class="btn btn-outline-primary m-2">Create Routes</a>
+  </div>
+{% endblock %}

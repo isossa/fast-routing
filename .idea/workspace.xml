@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="d982ecf3-de13-4cfb-bfd7-e3b0044b9d65" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/Procfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cache/test_distance_matrix" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cache/test_duration_matrix" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/admin.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/algorithms.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/apps.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/base/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/base/algorithms.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/base/common.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/base/database.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/base/services.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/common.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/database.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/forms.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/migrations/0001_initial.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/migrations/0002_alter_address_is_home_depot.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/migrations/0003_alter_driver_first_name.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/migrations/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/services.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/signals.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/static/css/styles.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/static/js/jquery-3.6.0.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/static/js/jquery.formset.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/templates/base_generic.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/templates/create_routes.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/templates/cvrp/address_list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/templates/cvrp/driver_detail.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/templates/cvrp/driver_list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/templates/export_home.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/templates/home.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/templates/new_route.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/templates/route_home.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/tests.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/urls.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/utils/ReadFile.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/utils/WriteFile.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/utils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/utils/dataframeutils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/utils/matrixutils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/utils/route.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/utils/savingsutils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cvrp/views.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/RandomAddresses.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/RandomAddresses.xlsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/db.sqlite3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/manage.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/runtime.txt" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1wScWAz7QETNGFvXM5elLvzdFGh" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="project.structure.last.edited" value="Project" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="settings.editor.selected.configurable" value="IntelliLang.Advanced" />
+  </component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings module-name="FastRouting" sdk-home="C:\Users\isossa\AppData\Local\Programs\Python\Python39\python.exe">
+        <option name="mySdkHome" value="C:\Users\isossa\AppData\Local\Programs\Python\Python39\python.exe" />
+        <option name="myModuleName" value="FastRouting" />
+      </console-settings>
+    </option>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d982ecf3-de13-4cfb-bfd7-e3b0044b9d65" name="Default Changelist" comment="" />
+      <created>1628455460822</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1628455460822</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>
