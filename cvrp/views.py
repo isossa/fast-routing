@@ -79,8 +79,6 @@ def get_matrices():
 
     print(response)
 
-    print(DistanceMatrixDB.distance_matrix)
-
     DistanceMatrixDB.save('./cache/test_distance_matrix')
     DurationMatrixDB.save('./cache/test_duration_matrix')
 
@@ -147,10 +145,6 @@ def str2driver(driver: str) -> common.Driver:
 def get_geocode(address: Address) -> str:
     coordinates = address.coordinates
     return coordinates[1:len(coordinates) - 1]
-
-
-get_matrices()
-setup()
 
 
 # print("\n")
