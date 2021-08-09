@@ -69,15 +69,12 @@ def update_address_db_helper(data):
 def get_matrices():
     address_list = []
     for address in Address.objects.all():
-        print(address, address.coordinates)
         address_obj = common.Address(street=address.street, city=address.city, state=address.state,
                                      country=address.country, zipcode=address.zipcode)
         address_list.append(address_obj)
 
     DistanceMatrixDB.distance_matrix, DurationMatrixDB.duration_matrix, response = services.DistanceMatrix.request_matrix(
         address_list, os.environ['BING_MAPS_API_KEY'], 'driving', 1)
-
-    print(response)
 
     DistanceMatrixDB.save('./cache/test_distance_matrix')
     DurationMatrixDB.save('./cache/test_duration_matrix')
@@ -429,7 +426,6 @@ def settings(request):
         if form.is_valid():
             print(request.FILES)
             handle_file_upload(request.FILES['address_file_location'])
-            # refresh()
             return HttpResponseRedirect(reverse('create_routes'))
 
     context = {

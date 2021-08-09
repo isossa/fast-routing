@@ -37,7 +37,6 @@ class BaseLocationFormSet(BaseFormSet):
         for form in self.forms:
             if form.cleaned_data:
                 location = form.cleaned_data['location_field']
-                # print(location)
                 if location in locations:
                     raise forms.ValidationError('A location must be selected at most once.')
                 else:
@@ -72,7 +71,6 @@ class BaseDriverFormSet(BaseFormSet):
         for form in self.forms:
             if form.cleaned_data:
                 driver = form.cleaned_data['driver_field']
-                print(driver)
                 if driver in drivers:
                     raise forms.ValidationError('A driver must be selected at most once.', code='duplicates_drivers')
                 else:
