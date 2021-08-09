@@ -71,11 +71,15 @@ class BaseDriverFormSet(BaseFormSet):
 
 
 class DriverForm(forms.Form):
-    drivers = Driver.objects.all().order_by('role', 'first_name', 'last_name')
-
     driver_choices = list()
-    for driver in drivers:
-        driver_choices.append((driver.__str__(), driver.__str__()))
+    
+    try:
+        drivers = Driver.objects.all().order_by('role', 'first_name', 'last_name')
+
+        for driver in drivers:
+            driver_choices.append((driver.__str__(), driver.__str__()))
+    except Exception:
+        pass
 
     driver_choices = [('', 'Select Driver')] + driver_choices
 
