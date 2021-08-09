@@ -54,16 +54,16 @@ def update_address_db_helper(data):
             address_db.save()
 
 
-def refresh():
-    """Ensure that every address is geocoded"""
-    for address in Address.objects.filter(longitude__exact=''):
-        address_copy = common.Address(street=address.street, city=address.city, state=address.state,
-                                      country=address.country, zipcode=address.zipcode)
-        address.latitude = address_copy.latitude
-        address.longitude = address_copy.longitude
-        address.coordinates = address_copy.coordinates
-        address.info = address_copy.info
-        address.save()
+# def refresh():
+#     """Ensure that every address is geocoded"""
+#     for address in Address.objects.filter(longitude__exact=''):
+#         address_copy = common.Address(street=address.street, city=address.city, state=address.state,
+#                                       country=address.country, zipcode=address.zipcode)
+#         address.latitude = address_copy.latitude
+#         address.longitude = address_copy.longitude
+#         address.coordinates = address_copy.coordinates
+#         address.info = address_copy.info
+#         address.save()
 
 
 def get_matrices():
@@ -365,7 +365,7 @@ setup()
 
 
 def create_routes(request):
-    refresh()
+    # refresh()
     number_drivers = 1 if Driver.objects.count() == 0 else 1
     number_addresses = 1 if Address.objects.count() == 0 else 1
     DriverFormSet = formset_factory(DriverForm, formset=BaseDriverFormSet, max_num=number_drivers)
@@ -435,7 +435,7 @@ def settings(request):
         if form.is_valid():
             print(request.FILES)
             handle_file_upload(request.FILES['address_file_location'])
-            refresh()
+            # refresh()
             return HttpResponseRedirect(reverse('create_routes'))
 
     context = {
