@@ -9,10 +9,12 @@ from django.urls import reverse
 from django.views import generic
 from urllib.parse import urlencode
 from urllib.request import urlopen
+from django.core.files.storage import FileSystemStorage
 
 from . import common, services, algorithms
-# from .forms import DriverForm, BaseDriverFormSet, LocationForm, BaseLocationFormSet, DefaultForm, DriverFormSetHelper
-# from .models import Driver, Route, Location, Address
+from .forms import DriverForm, BaseDriverFormSet, LocationForm, BaseLocationFormSet, DefaultForm, DriverFormSetHelper, \
+    UploadAddressForm, UploadDriverForm
+from .models import Driver, Route, Location, Address
 from .utils import dataframeutils
 from .utils.savingsutils import SavingsDB
 
@@ -20,9 +22,9 @@ import os
 import uuid
 
 
-def load_addresses_from_xls(filename):
+def load_addresses_from_xls(filepath):
     # Load addresses
-    data = pd.read_excel(filename)
+    data = pd.read_excel(filepath)
 
     # Clean data
     temp_df = data.select_dtypes(include='object')
@@ -33,54 +35,54 @@ def load_addresses_from_xls(filename):
     return data
 
 
-# def update_address_db():
-#     data = load_addresses_from_xls('./data/RandomAddresses.xlsx')
-#     update_address_db_helper(data)
+def update_address_db(filepath):
+    data = load_addresses_from_xls(filepath)
+    update_address_db_helper(data)
 
 
-# def update_address_db_helper(data):
-#     # Get geocodes
-#     addresses = common.Address.build_addresses(data)
-#
-#     for address in addresses:
-#         # Geocode addresses
-#         address.coordinates
-#         if address.latitude and address.longitude:
-#             address_db = Address(street=address.street, city=address.city, state=address.state, country=address.country,
-#                                  zipcode=address.zipcode, latitude=address.latitude, longitude=address.longitude,
-#                                  coordinates=address.coordinates, info=address.info)
-#             address_db.save()
+def update_address_db_helper(data):
+    # Get geocodes
+    addresses = common.Address.build_addresses(data)
+
+    for address in addresses:
+        # Geocode addresses
+        address.coordinates
+        if address.latitude and address.longitude:
+            address_db = Address(street=address.street, city=address.city, state=address.state, country=address.country,
+                                 zipcode=address.zipcode, latitude=address.latitude, longitude=address.longitude,
+                                 coordinates=address.coordinates, info=address.info)
+            address_db.save()
 
 
-# def refresh():
-#     """Ensure that every address is geocoded"""
-#     for address in Address.objects.filter(longitude__exact=''):
-#         address_copy = common.Address(street=address.street, city=address.city, state=address.state,
-#                                       country=address.country, zipcode=address.zipcode)
-#         address.latitude = address_copy.latitude
-#         address.longitude = address_copy.longitude
-#         address.coordinates = address_copy.coordinates
-#         address.info = address_copy.info
-#         address.save()
+def refresh():
+    """Ensure that every address is geocoded"""
+    for address in Address.objects.filter(longitude__exact=''):
+        address_copy = common.Address(street=address.street, city=address.city, state=address.state,
+                                      country=address.country, zipcode=address.zipcode)
+        address.latitude = address_copy.latitude
+        address.longitude = address_copy.longitude
+        address.coordinates = address_copy.coordinates
+        address.info = address_copy.info
+        address.save()
 
 
-# def get_matrices():
-#     address_list = []
-#     for address in Address.objects.all():
-#         print(address, address.coordinates)
-#         address_obj = common.Address(street=address.street, city=address.city, state=address.state,
-#                                      country=address.country, zipcode=address.zipcode)
-#         address_list.append(address_obj)
-#
-#     DistanceMatrixDB.distance_matrix, DurationMatrixDB.duration_matrix, response = services.DistanceMatrix.request_matrix(
-#         address_list, os.environ['BING_MAPS_API_KEY'], 'driving', 1)
-#
-#     print(response)
-#
-#     print(DistanceMatrixDB.distance_matrix)
-#
-#     DistanceMatrixDB.save('./cache/test_distance_matrix')
-#     DurationMatrixDB.save('./cache/test_duration_matrix')
+def get_matrices():
+    address_list = []
+    for address in Address.objects.all():
+        print(address, address.coordinates)
+        address_obj = common.Address(street=address.street, city=address.city, state=address.state,
+                                     country=address.country, zipcode=address.zipcode)
+        address_list.append(address_obj)
+
+    DistanceMatrixDB.distance_matrix, DurationMatrixDB.duration_matrix, response = services.DistanceMatrix.request_matrix(
+        address_list, os.environ['BING_MAPS_API_KEY'], 'driving', 1)
+
+    print(response)
+
+    print(DistanceMatrixDB.distance_matrix)
+
+    DistanceMatrixDB.save('./cache/test_distance_matrix')
+    DurationMatrixDB.save('./cache/test_duration_matrix')
 
 
 def setup():
@@ -363,52 +365,85 @@ setup()
 
 
 def create_routes(request):
-    # number_drivers = Driver.objects.count()
-    # number_addresses = Address.objects.count()
-    # DriverFormSet = formset_factory(DriverForm, formset=BaseDriverFormSet, max_num=number_drivers)
-    # LocationFormSet = formset_factory(LocationForm, formset=BaseLocationFormSet, max_num=number_addresses)
-    # DefaultFormset = formset_factory(DefaultForm)
-    #
+    refresh()
+    number_drivers = 1 if Driver.objects.count() == 0 else 1
+    number_addresses = 1 if Address.objects.count() == 0 else 1
+    DriverFormSet = formset_factory(DriverForm, formset=BaseDriverFormSet, max_num=number_drivers)
+    LocationFormSet = formset_factory(LocationForm, formset=BaseLocationFormSet, max_num=number_addresses)
+    DefaultFormset = formset_factory(DefaultForm)
+
     # print("CREATE ROUTES")
     # print(request.POST)
     # print(request.get_full_path())
-    # if request.method == "POST":
-    #     driver_formset = DriverFormSet(request.POST, prefix='drivers')  # queryset=Driver.objects.none()
-    #     location_formset = LocationFormSet(request.POST, prefix='locations')
-    #     default_formset = DefaultFormset(request.POST, prefix='default')
-    #     # print(default_formset.is_valid())
-    #     # print(driver_formset.is_valid())
-    #     # print(location_formset.is_valid())
-    #
-    #     if default_formset.is_valid() and driver_formset.is_valid() and location_formset.is_valid():
-    #         # Process data
-    #         print("BEGINNING PROCESSING")
-    #         print(default_formset.cleaned_data)
-    #         print(driver_formset.cleaned_data)
-    #         print(location_formset.cleaned_data)
-    #
-    #         routes_assigned, all_routes, location_assigned, all_assigned = run_solver(default_formset, driver_formset,
-    #                                                                                   location_formset)
-    #         request.session['routes_assigned'] = routes_assigned
-    #         request.session['all_routes'] = all_routes
-    #         request.session['location_assigned'] = location_assigned
-    #         request.session['all_assigned'] = all_assigned
-    #
-    #         # Redirect to a new URL:
-    #         return HttpResponseRedirect(reverse('new_route'))
-    # else:
-    #     driver_formset = DriverFormSet(request.GET or None, prefix='drivers')
-    #     location_formset = LocationFormSet(request.GET or None, prefix='locations')
-    #     default_formset = DefaultFormset(request.GET or None, prefix='default')
-    #
-    # context = {
-    #     'default_formset': default_formset,
-    #     'driver_formset': driver_formset,
-    #     'driver_formset_helper': DriverFormSetHelper(),
-    #     'location_formset': location_formset,
-    # }
+    if request.method == "POST":
+        driver_formset = DriverFormSet(request.POST, prefix='drivers')  # queryset=Driver.objects.none()
+        location_formset = LocationFormSet(request.POST, prefix='locations')
+        default_formset = DefaultFormset(request.POST, prefix='default')
+        # print(default_formset.is_valid())
+        # print(driver_formset.is_valid())
+        # print(location_formset.is_valid())
 
-    return render(request, 'create_routes.html', context=None)
+        if default_formset.is_valid() and driver_formset.is_valid() and location_formset.is_valid():
+            # Process data
+            print("BEGINNING PROCESSING")
+            print(default_formset.cleaned_data)
+            print(driver_formset.cleaned_data)
+            print(location_formset.cleaned_data)
+
+            routes_assigned, all_routes, location_assigned, all_assigned = None, None, None, None # run_solver(default_formset, driver_formset,
+                                                                                      # location_formset)
+            request.session['routes_assigned'] = routes_assigned
+            request.session['all_routes'] = all_routes
+            request.session['location_assigned'] = location_assigned
+            request.session['all_assigned'] = all_assigned
+
+            # Redirect to a new URL:
+            return HttpResponseRedirect(reverse('new_route'))
+    else:
+        driver_formset = DriverFormSet(request.GET or None, prefix='drivers')
+        location_formset = LocationFormSet(request.GET or None, prefix='locations')
+        default_formset = DefaultFormset(request.GET or None, prefix='default')
+
+    context = {
+        'default_formset': default_formset,
+        'driver_formset': driver_formset,
+        'driver_formset_helper': DriverFormSetHelper(),
+        'location_formset': location_formset,
+    }
+
+    return render(request, 'create_routes.html', context=context)
+
+
+def handle_file_upload(file):
+    file_storage = FileSystemStorage()
+    filename = file_storage.save(file.name, file)
+    filepath = file_storage.path(filename)
+    print(filename, filepath)
+
+    data = pd.read_excel(filepath)
+
+    print('\n\n')
+
+    print(data)
+
+    update_address_db(filepath)
+    
+
+def settings(request):
+    if request.method == 'POST':
+        form = UploadAddressForm(request.POST, request.FILES)
+        if form.is_valid():
+            print(request.FILES)
+            handle_file_upload(request.FILES['address_file_location'])
+            refresh()
+            return HttpResponseRedirect(reverse('create_routes'))
+
+    context = {
+        'address_file_form': UploadAddressForm(),
+        'driver_file_form': UploadDriverForm()
+    }
+        
+    return render(request, 'settings.html', context=context)
 
 
 def home(request):
