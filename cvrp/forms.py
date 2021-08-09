@@ -18,18 +18,12 @@ def get_addresses():
 
 def get_home_depot():
     address_choices = list()
-    addresses = Address.objects.filter(is_home_depot__exact=1).order_by('zipcode', 'country', 'state', 'city', 'street')
+    addresses = Address.objects.filter(is_home_depot__exact=0).order_by('zipcode', 'country', 'state', 'city', 'street')
 
     for address in addresses:
         address_choices.append((address.__str__(), address.__str__()))
 
     return address_choices
-
-
-# class DriverModelForm(forms.ModelForm):
-#     class Meta:
-#         model = models.Driver
-#         fields = ['first_name', 'last_name']
 
 
 class BaseLocationFormSet(BaseFormSet):
