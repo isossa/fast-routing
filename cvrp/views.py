@@ -144,12 +144,12 @@ def str2driver(driver: str) -> common.Driver:
     return driver
 
 
-# def get_geocode(address: Address) -> str:
-#     coordinates = address.coordinates
-#     return coordinates[1:len(coordinates) - 1]
+def get_geocode(address: Address) -> str:
+    coordinates = address.coordinates
+    return coordinates[1:len(coordinates) - 1]
 
 
-# get_matrices()
+get_matrices()
 setup()
 
 
