@@ -6,23 +6,16 @@ from django.forms import BaseFormSet
 from .models import Address, Driver
 
 
-def get_addresses():
+def get_addresses(home_depot=False):
     address_choices = list()
-    addresses = Address.objects.filter(is_home_depot__exact=0).order_by('zipcode', 'country', 'state', 'city', 'street')
+    try:
+        flag = 1 if home_depot else 0
+        addresses = Address.objects.filter(is_home_depot__exact=flag).order_by('zipcode', 'country', 'state', 'city', 'street')
 
-    for address in addresses:
-        address_choices.append((address.__str__(), address.__str__()))
-
-    return address_choices
-
-
-def get_home_depot():
-    address_choices = list()
-    addresses = Address.objects.filter(is_home_depot__exact=0).order_by('zipcode', 'country', 'state', 'city', 'street')
-
-    for address in addresses:
-        address_choices.append((address.__str__(), address.__str__()))
-
+        for address in addresses:
+            address_choices.append((address.__str__(), address.__str__()))
+    except Exception:
+        pass
     return address_choices
 
 
@@ -44,7 +37,7 @@ class BaseLocationFormSet(BaseFormSet):
 
 
 class DefaultForm(forms.Form):
-    address_choices = get_home_depot()
+    address_choices = get_addresses(home_depot=True)
     departure_choices = [('', 'Select Starting Location')]
     departure_choices.extend(address_choices)
     departure_field = forms.ChoiceField(
@@ -116,7 +109,7 @@ class DriverFormSetHelper(FormHelper):
 
 
 class LocationForm(forms.Form):
-    address_choices = get_addresses()
+    address_choices = get_addresses(home_depot=False)
     address_choices = [('', 'Select Address')] + address_choices
     location_field = forms.ChoiceField(
         widget=forms.Select(attrs={'class': 'form-control selectpciker',
