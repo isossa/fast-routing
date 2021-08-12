@@ -1,3 +1,4 @@
+import concurrent.futures.thread
 from pickle import load
 from .database import DistanceMatrixDB, DurationMatrixDB
 import pandas as pd
@@ -17,6 +18,7 @@ from .forms import DriverForm, BaseDriverFormSet, LocationForm, BaseLocationForm
 from .models import Driver, Route, Location, Address
 from .utils import dataframeutils
 from .utils.savingsutils import SavingsDB
+from multiprocessing import Pool
 
 import os
 import uuid
@@ -40,18 +42,23 @@ def update_address_db(filepath):
     update_address_db_helper(data)
 
 
+def save_address(address: common.Address):
+    if address.latitude and address.longitude:
+        address_db = Address(street=address.street, city=address.city, state=address.state, country=address.country,
+                             zipcode=address.zipcode, latitude=address.latitude, longitude=address.longitude,
+                             coordinates=address.coordinates, info=address.info)
+        address_db.save()
+
+
 def update_address_db_helper(data):
     # Get geocodes
     addresses = common.Address.build_addresses(data)
 
-    for address in addresses:
-        # Geocode addresses
-        address.coordinates
-        if address.latitude and address.longitude:
-            address_db = Address(street=address.street, city=address.city, state=address.state, country=address.country,
-                                 zipcode=address.zipcode, latitude=address.latitude, longitude=address.longitude,
-                                 coordinates=address.coordinates, info=address.info)
-            address_db.save()
+    with concurrent.futures.thread.ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+        executor.map(save_address, addresses)
+
+    # with Pool(processes=os.cpu_count() - 1) as pool:
+    #     pool.map(save_address, addresses)
 
 
 # def refresh():
@@ -413,10 +420,6 @@ def handle_file_upload(file):
 
     data = pd.read_excel(filepath)
 
-    print('\n\n')
-
-    print(data)
-
     update_address_db(filepath)
     
 
@@ -424,7 +427,7 @@ def settings(request):
     if request.method == 'POST':
         form = UploadAddressForm(request.POST, request.FILES)
         if form.is_valid():
-            print(request.FILES)
+            print(request.FILES.keys())
             handle_file_upload(request.FILES['address_file_location'])
             return HttpResponseRedirect(reverse('create_routes'))
 
