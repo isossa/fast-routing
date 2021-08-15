@@ -55,7 +55,9 @@ def save_address(address: common.Address):
         address_db = Address(street=address.street, city=address.city, state=address.state, country=address.country,
                              zipcode=address.zipcode, latitude=address.latitude, longitude=address.longitude,
                              coordinates=address.coordinates, info=address.info)
-        address_db.save()
+    else:
+        address.coordinates
+    address_db.save()
 
 
 def update_address_db_helper(data):

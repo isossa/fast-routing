@@ -24,4 +24,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('cvrp/', include('cvrp.urls')),
     path('', RedirectView.as_view(url='cvrp/', permanent=True)),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) 
+
+urlpatterns += [path('django-rq/', include('django_rq.urls'))]
