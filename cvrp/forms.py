@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Fieldset, Button, Div
 from django import forms
+from django.db import ProgrammingError
 from django.forms import BaseFormSet
 
 from .models import Address, Driver
@@ -10,11 +11,12 @@ def get_addresses(home_depot=False):
     address_choices = list()
     try:
         flag = 1 if home_depot else 0
-        addresses = Address.objects.filter(is_home_depot__exact=flag).order_by('zipcode', 'country', 'state', 'city', 'street')
+        addresses = Address.objects.filter(is_home_depot__exact=flag).order_by('zipcode', 'country', 'state', 'city',
+                                                                               'street')
 
         for address in addresses:
             address_choices.append((address.__str__(), address.__str__()))
-    except Exception:
+    except ProgrammingError:
         pass
     return address_choices
 
@@ -72,13 +74,13 @@ class BaseDriverFormSet(BaseFormSet):
 
 class DriverForm(forms.Form):
     driver_choices = list()
-    
+
     try:
         drivers = Driver.objects.all().order_by('role', 'first_name', 'last_name')
 
         for driver in drivers:
             driver_choices.append((driver.__str__(), driver.__str__()))
-    except Exception:
+    except ProgrammingError:
         pass
 
     driver_choices = [('', 'Select Driver')] + driver_choices
@@ -129,9 +131,14 @@ class LocationForm(forms.Form):
 
 
 class UploadAddressForm(forms.Form):
-    address_file_location = forms.FileField(label='')
+    address_file_location = forms.FileField(
+        label='', 
+        required=False
+    )
+
 
 class UploadDriverForm(forms.Form):
     driver_file_location = forms.FileField(
-        label=''
+        label='',
+        required=False
     )

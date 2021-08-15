@@ -24,7 +24,7 @@ import os
 import uuid
 
 
-def load_addresses_from_xls(filepath):
+def read_xls_data(filepath):
     # Load addresses
     data = pd.read_excel(filepath)
 
@@ -33,13 +33,21 @@ def load_addresses_from_xls(filepath):
     data[temp_df.columns] = temp_df.apply(lambda x: x.str.strip())
     data.drop_duplicates(inplace=True, ignore_index=True)
     dataframeutils.standardize_dataframe_columns(data)
-    print(f'Reading {len(data)} addresses.')
     return data
 
 
 def update_address_db(filepath):
-    data = load_addresses_from_xls(filepath)
+    data = read_xls_data(filepath)
     update_address_db_helper(data)
+
+
+def update_driver_db_helper(data):
+    pass
+
+
+def update_driver_db(filepath):
+    data = read_xls_data(filepath)
+    update_driver_db_helper(data)
 
 
 def save_address(address: common.Address):
@@ -121,7 +129,7 @@ def new_route(request):
 
 
 def export(request):
-    routes = None # Location.objects.all()
+    routes = None  # Location.objects.all()
     context = {
         'routes': routes
     }
@@ -388,8 +396,8 @@ def create_routes(request):
             print(driver_formset.cleaned_data)
             print(location_formset.cleaned_data)
 
-            routes_assigned, all_routes, location_assigned, all_assigned = None, None, None, None # run_solver(default_formset, driver_formset,
-                                                                                      # location_formset)
+            routes_assigned, all_routes, location_assigned, all_assigned = None, None, None, None  # run_solver(default_formset, driver_formset,
+            # location_formset)
             request.session['routes_assigned'] = routes_assigned
             request.session['all_routes'] = all_routes
             request.session['location_assigned'] = location_assigned
@@ -421,7 +429,7 @@ def handle_file_upload(file):
     data = pd.read_excel(filepath)
 
     update_address_db(filepath)
-    
+
 
 def settings(request):
     if request.method == 'POST':
@@ -435,7 +443,7 @@ def settings(request):
         'address_file_form': UploadAddressForm(),
         'driver_file_form': UploadDriverForm()
     }
-        
+
     return render(request, 'settings.html', context=context)
 
 
