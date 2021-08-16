@@ -485,7 +485,8 @@ def settings(request):
                 print(os.fork())
                 files = [request.FILES[filenames[index]] for index in range(len(filenames))]
                 queue = django_rq.get_queue(name='high', autocommit=True, is_async=True)
-                queue.enqueue(load_files, files=files)
+                result = queue.enqueue(load_files, files=files)
+                print('RESULT FROM FILE READING', result)
                 # load_files(files)
 
             return HttpResponseRedirect(reverse('create_routes'))
