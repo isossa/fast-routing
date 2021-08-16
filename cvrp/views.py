@@ -485,6 +485,9 @@ def settings(request):
                 print(os.fork())
                 files = [request.FILES[filenames[index]] for index in range(len(filenames))]
                 queue = django_rq.get_queue(name='high', autocommit=True, is_async=True)
+                print('QUEUE JOBS', queue.jobs)
+                print('QUEUE KEY', queue.key)
+                print('JOBS IDS', queue.job_ids)
                 jobs = queue.enqueue(load_files, files=files)
                 print('RESULT FROM FILE READING', jobs.result)
                 # load_files(files)
