@@ -1,48 +1,95 @@
 import concurrent.futures.thread
-from pickle import load
-from .database import DistanceMatrixDB, DurationMatrixDB
+import os
+import threading
+import timeit
+
+import django_rq
 import pandas as pd
-from django.contrib.auth.decorators import login_required
-from django.forms import modelformset_factory, formset_factory, forms
+import timerit
+from background_task import background
+from django.core.cache import cache
+from django.core.files.storage import FileSystemStorage
+from django.db import ProgrammingError
+from django.forms import formset_factory
 from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
-from urllib.parse import urlencode
-from urllib.request import urlopen
-from django.core.files.storage import FileSystemStorage
-
-from . import common, services, algorithms
-from .forms import DriverForm, BaseDriverFormSet, LocationForm, BaseLocationFormSet, DefaultForm, DriverFormSetHelper, \
-    UploadAddressForm, UploadDriverForm
-from .models import Driver, Route, Location, Address
-from .utils import dataframeutils
-from .utils.savingsutils import SavingsDB
 from multiprocessing import Pool
 
-import os
-import uuid
+from django_rq import job
+
+from . import common, services
+from .common import Route, Location
+from .database import DistanceMatrixDB, DurationMatrixDB
+from .forms import DriverForm, BaseDriverFormSet, LocationForm, BaseLocationFormSet, DefaultForm, DriverFormSetHelper, \
+    UploadAddressForm, UploadDriverForm
+from .models import Driver, Address
+from .utils import dataframeutils
+
+
+def reset_databases():
+    try:
+        Driver.objects.all().delete()
+        Address.objects.all().delete()
+        cache.clear()
+        print('RUNNING DATABASE RESET')
+    except ProgrammingError:
+        pass
 
 
 def read_xls_data(filepath):
-    # Load addresses
-    data = pd.read_excel(filepath)
+    """
+    A generic method to read xls and xlsx files
 
-    # Clean data
-    temp_df = data.select_dtypes(include='object')
-    data[temp_df.columns] = temp_df.apply(lambda x: x.str.strip())
-    data.drop_duplicates(inplace=True, ignore_index=True)
-    dataframeutils.standardize_dataframe_columns(data)
+    Args:
+        filepath:
+
+    Returns:
+
+    """
+    try:
+        data = pd.read_excel(filepath)
+
+        # Clean data
+        temp_df = data.select_dtypes(include='object')
+        data[temp_df.columns] = temp_df.apply(lambda x: x.str.strip())
+        data.drop_duplicates(inplace=True, ignore_index=True)
+        dataframeutils.standardize_dataframe_columns(data)
+    except FileNotFoundError:
+        return []
+
     return data
 
 
-def update_address_db(filepath):
-    data = read_xls_data(filepath)
-    update_address_db_helper(data)
+def save_address(address: common.Address):
+    if address:
+        if address.latitude and address.longitude:
+            address_db = Address(street=address.street, city=address.city, state=address.state, country=address.country,
+                                 zipcode=address.zipcode, latitude=address.latitude, longitude=address.longitude,
+                                 coordinates=address.coordinates, info=address.info)
+        else:
+            address.coordinates
+        address_db.save()
+
+
+def save_driver(driver: common.Driver):
+    if driver:
+        driver_db = Driver(first_name=driver.first_name, last_name=driver.last_name, role=driver.role)
+        driver_db.save()
+
+
+def update_address_db_helper(data):
+    addresses = common.Address.build_addresses(data)
+
+    with concurrent.futures.thread.ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+        executor.map(save_address, addresses)
 
 
 def update_driver_db_helper(data):
-    pass
+    drivers = common.Driver.get_drivers(data)
+    with concurrent.futures.thread.ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+        executor.map(save_driver, drivers)
 
 
 def update_driver_db(filepath):
@@ -50,26 +97,12 @@ def update_driver_db(filepath):
     update_driver_db_helper(data)
 
 
-def save_address(address: common.Address):
-    if address.latitude and address.longitude:
-        address_db = Address(street=address.street, city=address.city, state=address.state, country=address.country,
-                             zipcode=address.zipcode, latitude=address.latitude, longitude=address.longitude,
-                             coordinates=address.coordinates, info=address.info)
-    else:
-        address.coordinates
-    address_db.save()
+def update_address_db(filepath):
+    data = read_xls_data(filepath)
+    update_address_db_helper(data)
 
 
-def update_address_db_helper(data):
-    # Get geocodes
-    addresses = common.Address.build_addresses(data)
-
-    with concurrent.futures.thread.ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
-        executor.map(save_address, addresses)
-
-    # with Pool(processes=os.cpu_count() - 1) as pool:
-    #     pool.map(save_address, addresses)
-
+# update_driver_db('./data/Drivers.xlsx')
 
 # def refresh():
 #     """Ensure that every address is geocoded"""
@@ -433,12 +466,28 @@ def handle_file_upload(file):
     update_address_db(filepath)
 
 
+@job
+def load_files(files):
+    timer = timerit.Timerit(verbose=2)
+    for time in timer:
+        with concurrent.futures.thread.ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+            executor.map(handle_file_upload, files)
+
+
 def settings(request):
     if request.method == 'POST':
+        reset_databases()
         form = UploadAddressForm(request.POST, request.FILES)
         if form.is_valid():
-            print(request.FILES.keys())
-            handle_file_upload(request.FILES['address_file_location'])
+            if request.FILES:
+                filenames = list(request.FILES.keys())
+                print('FILENAMES', filenames)
+                print(os.fork())
+                files = [request.FILES[filenames[index]] for index in range(len(filenames))]
+                queue = django_rq.get_queue(name='high', autocommit=True, is_async=True)
+                queue.enqueue(load_files, files=files)
+                # load_files(files)
+
             return HttpResponseRedirect(reverse('create_routes'))
 
     context = {
@@ -449,27 +498,32 @@ def settings(request):
     return render(request, 'settings.html', context=context)
 
 
-def home(request):
-    """
-    View function for driver page of site.
-    :return:
-    """
-
-    # # Get drivers in database
-    # num_drivers = Driver.objects.all().count()
-    # num_routes = Route.objects.all().count()
-    # num_locations = Location.objects.all().count()
-    # num_addresses = Address.objects.all().count()
-    #
-    # context = {
-    #     'num_drivers': num_drivers,
-    #     'num_locations': num_locations,
-    #     'num_routes': num_routes,
-    #     'num_addresses': num_addresses
-    # }
-
-    # Render the HTML template driver_list.html with the data in the context variable
-    return render(request, 'home.html', context=None)
+# def home(request):
+#     """
+#     View function for driver page of site.
+#     :return:
+#     """
+#
+#     try:
+#         # Get drivers in database
+#         num_drivers = Driver.objects.all().count()
+#         num_routes = Route.objects.all().count()
+#         num_locations = Location.objects.all().count()
+#         num_addresses = Address.objects.all().count()
+#     except ProgrammingError:
+#         num_drivers = 0
+#         num_locations = 0
+#         num_routes = 0
+#         num_addresses = 0
+#
+#     context = {
+#         'num_drivers': num_drivers,
+#         'num_locations': num_locations,
+#         'num_routes': num_routes,
+#         'num_addresses': num_addresses
+#     }
+#
+#     return render(request, 'home.html', context=None)
 
 
 class DriverListView(generic.ListView):

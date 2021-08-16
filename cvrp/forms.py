@@ -132,7 +132,7 @@ class LocationForm(forms.Form):
 
 class UploadAddressForm(forms.Form):
     address_file_location = forms.FileField(
-        label='', 
+        label='',
         required=False
     )
 

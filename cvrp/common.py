@@ -168,6 +168,7 @@ class Address:
     @staticmethod
     def build_addresses(data):
         """Given a data frame, returns a list of Address objects"""
+
         return [Address(street=add.Address.strip(), city=add.City.strip(), state=add.State.strip(),
                         zipcode=add.Zip_Code, country="United States") for add in data.itertuples()]
 
@@ -335,7 +336,6 @@ class Driver:
         """
         return self._last_name
 
-
     @property
     def availability_list(self):
         """
@@ -452,6 +452,11 @@ class Driver:
             self._availability_score = sum(self._availability_list)
 
         return self._availability_score
+
+    @staticmethod
+    def get_drivers(data):
+        return [Driver(first_name=driver.Firstname, last_name=driver.Lastname, role=driver.Role)
+                for driver in data.itertuples()]
 
 
 class Drivers:

@@ -11,8 +11,10 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+
 import dj_database_url
 import django_heroku
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -169,6 +171,7 @@ RQ_QUEUES = {
     'high': {
         'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0'), # If you're on Heroku
         'DEFAULT_TIMEOUT': 500,
+        'PASSWORD': '',
     },
     'low': {
         'HOST': 'localhost',
@@ -177,4 +180,4 @@ RQ_QUEUES = {
     }
 }
 
-RQ_EXCEPTION_HANDLERS = [''] # If you need custom exception handlers
+# RQ_EXCEPTION_HANDLERS = ['path.to.exception'] # If you need custom exception handlers
