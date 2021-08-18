@@ -455,25 +455,6 @@ def create_routes(request):
     return render(request, 'create_routes.html', context=context)
 
 
-def handle_file_upload(file):
-    file_storage = FileSystemStorage()
-    filename = file_storage.save(file.name, file)
-    filepath = file_storage.path(filename)
-    print(filename, filepath)
-
-    data = pd.read_excel(filepath)
-
-    update_address_db(filepath)
-
-
-@job
-def load_files(files):
-    timer = timerit.Timerit(verbose=2)
-    for time in timer:
-        with concurrent.futures.thread.ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
-            executor.map(handle_file_upload, files)
-
-
 def settings(request):
     if request.method == 'POST':
         reset_databases()
@@ -482,14 +463,14 @@ def settings(request):
             if request.FILES:
                 filenames = list(request.FILES.keys())
                 print('FILENAMES', filenames)
-                print(os.fork())
                 files = [request.FILES[filenames[index]] for index in range(len(filenames))]
-                queue = django_rq.get_queue(name='high', autocommit=True, is_async=True)
-                print('QUEUE JOBS', queue.jobs)
-                print('QUEUE KEY', queue.key)
-                print('JOBS IDS', queue.job_ids)
-                jobs = queue.enqueue(load_files, files=files)
-                print('RESULT FROM FILE READING', jobs.result)
+                print(files)
+                # queue = django_rq.get_queue(name='high', autocommit=True, is_async=True)
+                # print('QUEUE JOBS', queue.jobs)
+                # print('QUEUE KEY', queue.key)
+                # print('JOBS IDS', queue.job_ids)
+                # jobs = queue.enqueue(load_files, files=files)
+                # print('RESULT FROM FILE READING', jobs.result)
                 # load_files(files)
 
             return HttpResponseRedirect(reverse('create_routes'))

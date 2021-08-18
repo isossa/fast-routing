@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'django_tables2',
     'django_rq',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -79,6 +80,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'routing.wsgi.application'
+
+ASGI_APPLICATION = 'routing.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
@@ -171,7 +174,6 @@ RQ_QUEUES = {
     'high': {
         'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0'), # If you're on Heroku
         'DEFAULT_TIMEOUT': 500,
-        'PASSWORD': '',
     },
     'low': {
         'HOST': 'localhost',
@@ -180,4 +182,7 @@ RQ_QUEUES = {
     }
 }
 
+RQ_SHOW_ADMIN_LINK = True
+
 # RQ_EXCEPTION_HANDLERS = ['path.to.exception'] # If you need custom exception handlers
+

@@ -1,4 +1,5 @@
 {% extends "base_generic.html" %}
+{% load static %}
 
 {% block title%} <title>Settings | Fast Routing</title>{% endblock %}
 
@@ -13,14 +14,14 @@
 
 <br/>
 
-<form method="post" enctype="multipart/form-data" class="mb-2">
+<form method="POST" enctype="multipart/form-data" class="mb-2">
     {% csrf_token %}
     <div class="form-row">
         <div class="col-md-6 input-group">
             <div class="input-group-prepend mr-4">
                 <span class="input-group-text">Addresses</span>
             </div>
-            <div class="custom-file">
+            <div class="custom-file" id="address-file-location">
                 {{ address_file_form }}
             </div>
             
@@ -30,7 +31,7 @@
             <div class="input-group-prepend mr-4">
                 <span class="input-group-text">Drivers</span>
             </div>
-            <div class="custom-file">
+            <div class="custom-file" id="driver-file-location">
                 {{ driver_file_form }}
             </div>
             
@@ -54,9 +55,10 @@
             Uploading...
         </button>
     </div>
-        
-    </div>
 
+    <div id="txtHint">
+
+    </div>
 </form>
 
 <!--<div class="ajaxLoader">-->
@@ -66,18 +68,22 @@
 
 {% endblock %}
 
-<script type="text/javascript">
-    function load_spinner(name) {
-        $('.ajaxLoader').show();
-        $.ajax({
-            type: "GET",
-            url: "",
-            dataType: "",
-            async: true,
-            data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
-                success: function(json) {
-                    $('.ajaxLoader').hide();
-                }
-        });
-    }
-</script>
+{% block js %}
+    {{ block.super }}
+    <script src="{% static 'js/settings.js' %}" type="text/javascript"></script>
+    <!--<script type="text/javascript">-->
+    <!--    function load_spinner(name) {-->
+    <!--        $('.ajaxLoader').show();-->
+    <!--        $.ajax({-->
+    <!--            type: "GET",-->
+    <!--            url: "",-->
+    <!--            dataType: "",-->
+    <!--            async: true,-->
+    <!--            data: {csrfmiddlewaretoken: '{{ csrf_token }}'},-->
+    <!--                success: function(json) {-->
+    <!--                    $('.ajaxLoader').hide();-->
+    <!--                }-->
+    <!--        });-->
+    <!--    }-->
+    <!--</script>-->
+{% endblock %}
