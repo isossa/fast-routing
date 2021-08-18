@@ -1,26 +1,16 @@
 import concurrent.futures.thread
 import os
-import threading
-import timeit
 
-import django_rq
 import pandas as pd
-import timerit
-from background_task import background
 from django.core.cache import cache
-from django.core.files.storage import FileSystemStorage
 from django.db import ProgrammingError
 from django.forms import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
-from multiprocessing import Pool
-
-from django_rq import job
 
 from . import common, services
-from .common import Route, Location
 from .database import DistanceMatrixDB, DurationMatrixDB
 from .forms import DriverForm, BaseDriverFormSet, LocationForm, BaseLocationFormSet, DefaultForm, DriverFormSetHelper, \
     UploadAddressForm, UploadDriverForm
