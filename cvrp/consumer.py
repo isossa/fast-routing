@@ -41,8 +41,7 @@ class UploadFileConsumer(WebsocketConsumer):
         message = text_data_json['address_location']
         print(message)
 
-        while True:
-            self.send(text_data=json.dumps({
-                'message': 'Uploading data...'
-            }))
+        self.send(text_data=json.dumps({
+            'message': 'Uploading data...'
+        }))
 

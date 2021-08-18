@@ -45,8 +45,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'cvrp.apps.CvrpConfig',
     'crispy_forms',
-    'django_tables2',
-    'django_rq',
     'channels',
 ]
 
