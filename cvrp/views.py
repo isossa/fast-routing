@@ -452,9 +452,9 @@ def settings(request):
         if form.is_valid():
             if request.FILES:
                 filenames = list(request.FILES.keys())
-                print('FILENAMES', filenames)
+                # print('FILENAMES', filenames)
                 files = [request.FILES[filenames[index]] for index in range(len(filenames))]
-                print(files)
+                # print(files)
                 # queue = django_rq.get_queue(name='high', autocommit=True, is_async=True)
                 # print('QUEUE JOBS', queue.jobs)
                 # print('QUEUE KEY', queue.key)

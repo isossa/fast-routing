@@ -8,6 +8,7 @@ from channels.generic.websocket import WebsocketConsumer
 from django.core.files.storage import FileSystemStorage
 
 from cvrp.views import update_address_db
+from routing import settings
 
 
 def handle_file_upload(file):
@@ -41,7 +42,10 @@ class UploadFileConsumer(WebsocketConsumer):
         message = text_data_json['address_location']
         print(message)
 
-        self.send(text_data=json.dumps({
-            'message': 'Uploading data...'
-        }))
+        print(settings.MEDIA_ROOT)
+
+        for _ in range(100000):
+            self.send(text_data=json.dumps({
+                'message': 'Uploading data...'
+            }))
 

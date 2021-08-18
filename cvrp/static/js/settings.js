@@ -13,6 +13,10 @@ socket.onclose = function(event) {
   console.log('Socket closed!');
 };
 
+if (socket.readyState == WebSocket.OPEN) {
+    socket.onopen();
+};
+
 console.log(socket);
 
 document.ready = function(){
