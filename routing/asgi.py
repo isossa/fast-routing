@@ -17,10 +17,8 @@ django.setup()
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
-
+from cvrp.middleware import websockets
 import cvrp.routing
-
-
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
@@ -30,4 +28,7 @@ application = ProtocolTypeRouter({
         )
     ),
 })
+
+# application = get_asgi_application()
+# application = websockets(application)
 

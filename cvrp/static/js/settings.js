@@ -1,5 +1,8 @@
+var ws_scheme = window.location.protocol == 'https:' ? 'wss' : 'ws';
+
 const socket = new WebSocket(
-    'wss://'
+    ws_scheme
+    + '://'
     + window.location.host
     + '/ws/upload-files/'
 );
@@ -15,9 +18,12 @@ socket.onclose = function(event) {
 
 if (socket.readyState == WebSocket.OPEN) {
     socket.onopen();
+    console.log('Keeping connection open.');
 };
 
+console.log(ws_scheme);
 console.log(socket);
+
 
 document.ready = function(){
     document.getElementById('btn-spinner').classList.add('not-visible');
@@ -28,12 +34,13 @@ document.querySelector('#btn-load').onclick = function(){
     document.getElementById('btn-spinner').classList.remove('not-visible');
     document.getElementById('btn-load').classList.add('not-visible');
 
-    var address_div = document.getElementById('address-file-location');
-    var address_input = address_div.firstElementChild;
+    var address_input = document.getElementById('address-file-location').firstElementChild;
+    var driver_input = document.getElementById('driver-file-location').firstElementChild;
 
     address_input.onchange = function () { getFilename(address_input) };
     socket.send(JSON.stringify({
-        'address_location': getFilename(address_input)
+        'address_location': getFilename(address_input),
+        'driver_location': getFilename(driver_input)
     }));
 };
 

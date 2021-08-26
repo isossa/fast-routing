@@ -1,7 +1,9 @@
+import asyncio
 import concurrent.futures.thread
 import os
 
 import pandas as pd
+from asgiref.sync import sync_to_async
 from django.core.cache import cache
 from django.db import ProgrammingError
 from django.forms import formset_factory
@@ -9,8 +11,10 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
+from django.views.generic import TemplateView
 
 from . import common, services
+from .connection import WebSocket
 from .database import DistanceMatrixDB, DurationMatrixDB
 from .forms import DriverForm, BaseDriverFormSet, LocationForm, BaseLocationFormSet, DefaultForm, DriverFormSetHelper, \
     UploadAddressForm, UploadDriverForm
@@ -445,9 +449,11 @@ def create_routes(request):
     return render(request, 'create_routes.html', context=context)
 
 
-def settings(request):
+async def settings(request):
     if request.method == 'POST':
-        reset_databases()
+        loop = asyncio.get_event_loop()
+        async_function = sync_to_async(reset_databases)
+        loop.create_task(async_function())
         form = UploadAddressForm(request.POST, request.FILES)
         if form.is_valid():
             if request.FILES:
@@ -463,7 +469,7 @@ def settings(request):
                 # print('RESULT FROM FILE READING', jobs.result)
                 # load_files(files)
 
-            return HttpResponseRedirect(reverse('create_routes'))
+            return HttpResponseRedirect(reverse('settings_load'))
 
     context = {
         'address_file_form': UploadAddressForm(),
@@ -471,6 +477,28 @@ def settings(request):
     }
 
     return render(request, 'settings.html', context=context)
+
+
+async def settings_load(request):
+    if request.method == 'POST':
+        loop = asyncio.get_event_loop()
+        async_function = sync_to_async(reset_databases)
+        loop.create_task(async_function())
+        form = UploadAddressForm(request.POST, request.FILES)
+        if form.is_valid():
+            if request.FILES:
+                filenames = list(request.FILES.keys())
+                # print('FILENAMES', filenames)
+                files = [request.FILES[filenames[index]] for index in range(len(filenames))]
+
+            # return HttpResponseRedirect(reverse('create_routes'))
+
+    context = {
+        'address_file_form': UploadAddressForm(),
+        'driver_file_form': UploadDriverForm()
+    }
+
+    return render(request, 'settings_loader.html', context=context)
 
 
 # def home(request):
@@ -499,6 +527,15 @@ def settings(request):
 #     }
 #
 #     return render(request, 'home.html', context=None)
+
+class IndexView(TemplateView):
+    template_name = "index.html"
+
+
+async def websocket_view(socket: WebSocket):
+    await socket.accept()
+    await socket.send_text('hello')
+    await socket.close()
 
 
 class DriverListView(generic.ListView):

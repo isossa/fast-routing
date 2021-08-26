@@ -19,11 +19,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
 
+from cvrp import views
+from cvrp.urls import websocket
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('cvrp/', include('cvrp.urls')),
-    path('', RedirectView.as_view(url='cvrp/', permanent=True)),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) 
+                  path('admin/', admin.site.urls),
+                  path('cvrp/', include('cvrp.urls')),
+                  path('', RedirectView.as_view(url='cvrp/', permanent=True)),
+              ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-urlpatterns += [path('django-rq/', include('django_rq.urls'))]
+urlpatterns += [path('django-rq/', include('django_rq.urls')), ]
