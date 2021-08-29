@@ -3,8 +3,10 @@ import concurrent.futures.thread
 import os
 
 import pandas as pd
+import timerit
 from asgiref.sync import sync_to_async
 from django.core.cache import cache
+from django.core.files.storage import FileSystemStorage
 from django.db import ProgrammingError
 from django.forms import formset_factory
 from django.http import HttpResponseRedirect
@@ -449,27 +451,34 @@ def create_routes(request):
     return render(request, 'create_routes.html', context=context)
 
 
-async def settings(request):
+def handle_file_upload(file):
+    file_storage = FileSystemStorage()
+    filename = file_storage.save(file.name, file)
+    filepath = file_storage.path(filename)
+    print(filename, filepath)
+
+
+def load_files(files):
+    timer = timerit.Timerit(verbose=2)
+    for time in timer:
+        with concurrent.futures.thread.ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
+            executor.map(handle_file_upload, files)
+
+
+def settings(request):
     if request.method == 'POST':
-        loop = asyncio.get_event_loop()
-        async_function = sync_to_async(reset_databases)
-        loop.create_task(async_function())
+        # loop = asyncio.get_event_loop()
+        # async_function = sync_to_async(reset_databases)
+        # loop.create_task(async_function())
         form = UploadAddressForm(request.POST, request.FILES)
         if form.is_valid():
             if request.FILES:
                 filenames = list(request.FILES.keys())
-                # print('FILENAMES', filenames)
-                files = [request.FILES[filenames[index]] for index in range(len(filenames))]
-                # print(files)
-                # queue = django_rq.get_queue(name='high', autocommit=True, is_async=True)
-                # print('QUEUE JOBS', queue.jobs)
-                # print('QUEUE KEY', queue.key)
-                # print('JOBS IDS', queue.job_ids)
-                # jobs = queue.enqueue(load_files, files=files)
-                # print('RESULT FROM FILE READING', jobs.result)
-                # load_files(files)
+                print(request.FILES.keys(), request.FILES.values())
+                files = [request.FILES[file] for file in filenames]
+                load_files(files)
 
-            return HttpResponseRedirect(reverse('settings_load'))
+            return render(request, 'settings_loader.html', context=None) # HttpResponseRedirect(reverse('settings_load'))
 
     context = {
         'address_file_form': UploadAddressForm(),
@@ -479,26 +488,15 @@ async def settings(request):
     return render(request, 'settings.html', context=context)
 
 
-async def settings_load(request):
-    if request.method == 'POST':
-        loop = asyncio.get_event_loop()
-        async_function = sync_to_async(reset_databases)
-        loop.create_task(async_function())
-        form = UploadAddressForm(request.POST, request.FILES)
-        if form.is_valid():
-            if request.FILES:
-                filenames = list(request.FILES.keys())
-                # print('FILENAMES', filenames)
-                files = [request.FILES[filenames[index]] for index in range(len(filenames))]
-
-            # return HttpResponseRedirect(reverse('create_routes'))
-
-    context = {
-        'address_file_form': UploadAddressForm(),
-        'driver_file_form': UploadDriverForm()
-    }
-
-    return render(request, 'settings_loader.html', context=context)
+# def settings_load(request):
+#     reset_databases()
+#     # loop = asyncio.get_event_loop()
+#     # async_function = sync_to_async(reset_databases)
+#     # loop.create_task(async_function())
+#     while True:
+#         pass
+#
+#     return HttpResponseRedirect(reverse('create_routes'))
 
 
 # def home(request):

@@ -455,8 +455,12 @@ class Driver:
 
     @staticmethod
     def get_drivers(data):
-        return [Driver(first_name=driver.Firstname, last_name=driver.Lastname, role=driver.Role)
-                for driver in data.itertuples()]
+        try:
+            result = [Driver(first_name=driver.Firstname, last_name=driver.Lastname, role=driver.Role)
+                      for driver in data.itertuples()]
+        except Exception:
+            result = []
+        return result
 
 
 class Drivers:

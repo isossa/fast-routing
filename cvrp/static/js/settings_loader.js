@@ -8,32 +8,40 @@ const socket = new WebSocket(
 );
 
 socket.onclose = function(event) {
-  console.log('Socket closed!');
+    console.log('Socket closed!');
 };
 
 socket.onopen = function(event) {
-    var counter = 0;
-    var date = new Date();
-
-    const LIMIT = 400;
-    while (counter < LIMIT) {
-        socket.send(JSON.stringify({
-            'counter': date.getTime()
-        }));
-        console.log('Counter ' + date.getTime() + '\n');
-        counter++;
-    }
     console.log('Keeping connection open.');
+    socket.send(JSON.stringify({
+            'message': 'Ready'
+    }));
 }
 
 socket.onmessage = function(event) {
     const data = JSON.parse(event.data);
     console.log('Received ' + data.message + '\n');
+    if (data.message == 'DONE') {
+        console.log('Finished uploading!');
+        var http_scheme = window.location.protocol
+        url = http_scheme + '//' + window.location.host + '/cvrp/routes/create_routes/';
+        window.location.replace(url);
+        console.log(url);
+    }
 };
 
-if (socket.readyState == WebSocket.OPEN) {
-    socket.onopen();
-};
+socket.onerror = function(event) {
+    console.log('An error occurred with message: ' + event.data);
+}
+
+//if (socket.readyState == WebSocket.OPEN) {
+//    socket.onopen();
+//    while (true) {
+//        socket.send(JSON.stringify({
+//            'message': 'Ready'
+//        }));
+//    }
+//};
 
 console.log(ws_scheme);
 console.log(socket);

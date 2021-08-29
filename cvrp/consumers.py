@@ -1,26 +1,24 @@
 import concurrent
 import json
 import os
-import time
-from pprint import pprint
 
-import pandas as pd
 import timerit
 from channels.generic.websocket import WebsocketConsumer
-from django.core.files.storage import FileSystemStorage
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
-from cvrp.views import update_address_db
+from cvrp.views import update_address_db, update_driver_db, reset_databases
 from routing import settings
 
 
 def handle_file_upload(filepath):
-    data = pd.read_excel(filepath)
+    update_driver_db(filepath)
     update_address_db(filepath)
 
 
 def load_files(filepaths):
     timer = timerit.Timerit(verbose=2)
-    for time in timer:
+    for _ in timer:
         with concurrent.futures.thread.ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
             executor.map(handle_file_upload, filepaths)
 
@@ -49,19 +47,24 @@ class UploadFileConsumer(WebsocketConsumer):
 
 class LoaderConsumer(WebsocketConsumer):
     def connect(self):
+        reset_databases()
         self.accept()
 
     def disconnect(self, code):
         pass
 
     def receive(self, text_data=None, bytes_data=None):
-        start_time = time.time()
-        print(start_time)
-        # end_time = start_time + 100000
         text_data_json = json.loads(text_data)
-        message = text_data_json['counter']
-        print('Received ' + str(message))
-
+        message = text_data_json['message']
+        filepaths = []
+        for f in os.scandir(settings.MEDIA_ROOT):
+            if f.is_file():
+                filepaths.append(f.path)
+        load_files(filepaths)
+        for filepath in filepaths:
+            os.remove(filepath)
+        message = 'DONE'
         self.send(text_data=json.dumps({
             'message': message
         }))
+        return HttpResponseRedirect(reverse('create_routes'))
