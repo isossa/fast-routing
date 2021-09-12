@@ -139,6 +139,11 @@ class LocationForm(forms.Form):
                                         'placeholder': 'Enter demand',
                                         'required': 'required'}))
 
+    def __init__(self, *args, **kwargs):
+        super(LocationForm, self).__init__(*args, **kwargs)
+        address_choices = [('', 'Select Address')] + get_addresses(home_depot=False)
+        self.fields['location_field'].choices = address_choices
+
 
 class UploadAddressForm(forms.Form):
     address_file_location = forms.FileField(
