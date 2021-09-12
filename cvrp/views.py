@@ -418,8 +418,16 @@ def run_solver(default_formset, driver_formset, location_formset):
 
 def create_routes(request):
     # refresh()
-    number_drivers = 1 if Driver.objects.count() == 0 else 1
-    number_addresses = 1 if Address.objects.count() == 0 else 1
+    try:
+        number_drivers = 1 if Driver.objects.count() == 0 else 1
+    except ProgrammingError:
+        number_drivers = 1
+
+    try:
+        number_addresses = 1 if Address.objects.count() == 0 else 1
+    except ProgrammingError:
+        number_addresses = 1
+        
     DriverFormSet = formset_factory(DriverForm, formset=BaseDriverFormSet, max_num=number_drivers)
     LocationFormSet = formset_factory(LocationForm, formset=BaseLocationFormSet, max_num=number_addresses)
     DefaultFormset = formset_factory(DefaultForm)
