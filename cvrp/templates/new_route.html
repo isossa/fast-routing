@@ -31,14 +31,15 @@
   {% endfor %}
 {% else %}
   <div class="row align-items-center justify-content-center">
-    <p style="font-size:18px">Display assigned routes and provide ways to visualize routes.</p>
+    <p style="font-size:18px">No route has been assigned.</p>
   </div>
 
   <br/>
-{% endif %}
 
   <div class="d-flex align-items-center justify-content-center">
-    <a href="" role="button" class="btn btn-outline-primary p-2">Export Routes</a>
+    <a href="{% url 'create_routes' %}" role="button" class="btn btn-outline-primary p-2">Home</a>
   </div>
+{% endif %}
+
 </div>
 {% endblock %}

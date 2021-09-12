@@ -231,9 +231,11 @@ def run_feasible_assignment(sorted_savings: dict, capacity: int, demand: dict, c
     :param customers:
     :param availability_map:
     :param marginal_capacity:
+    :duration_matrix:
     :return:
+
     """
-    locations = {customer: status for customer, status in customers.items() if status}
+    locations = {customer: assigned for customer, assigned in customers.items() if not assigned}
     all_routes = {}
     iteration_counter = 1
     routes_assignment = {}
@@ -277,13 +279,13 @@ def build_routes(sorted_savings: dict, capacity: int, demand: dict, customers: d
 
         iteration += 1
 
-        customers_to_assign = {customer: status for customer, status in customers.items() if status}
+        customers_to_assign = {customer: assigned for customer, assigned in customers.items() if not assigned}
 
         print("\nCustomer to assigned - BUILD ROUTES - Iteration ", iteration, customers_to_assign, "\n\n\n")
 
         routes_assignment_new, all_routes_new, customers_new, all_assigned = \
-            run_feasible_assignment(sorted_savings, capacity, demand, customers_to_assign, dummy_drivers, duration_matrix,
-                                    marginal_capacity)
+            run_feasible_assignment(sorted_savings, capacity, demand, customers_to_assign, dummy_drivers,
+                                    duration_matrix, marginal_capacity)
 
         routes_assignment.update(routes_assignment_new)
         all_routes.update(all_routes_new)
@@ -292,8 +294,8 @@ def build_routes(sorted_savings: dict, capacity: int, demand: dict, customers: d
     return routes_assignment, all_routes, customers, all_assigned
 
 
-def assign_routes(sorted_savings: dict, capacity: int, demand: dict, customers: dict, availability_map: dict, duration_matrix: dict, 
-                  marginal_capacity: int = 0) -> tuple:
+def assign_routes(sorted_savings: dict, capacity: int, demand: dict, customers: dict, availability_map: dict,
+                  duration_matrix: dict, marginal_capacity: int = 0) -> tuple:
     """Build routes
 
     :param sorted_savings:
@@ -301,8 +303,10 @@ def assign_routes(sorted_savings: dict, capacity: int, demand: dict, customers: 
     :param demand:
     :param customers:
     :param availability_map:
+    :param duration_matrix:
     :param marginal_capacity:
     :return:
+
     """
 
     routes_assignment, all_routes, customers, all_assigned = \

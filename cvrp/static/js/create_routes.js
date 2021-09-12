@@ -53,6 +53,15 @@ function deleteForm(prefix, btn, element_name) {
     return false;
 }
 
+window.onload = function() {
+    counter = 1
+    if (counter > 1) {
+        location.reload();
+        document.getElementById('dataForm').reset();
+        counter++;
+    }
+}
+
 $(document).on('click', '.add-driver-row', function(e){
     e.preventDefault();
     cloneMore('.driver-row:last', 'drivers', 'driver');

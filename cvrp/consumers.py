@@ -12,11 +12,19 @@ from routing import settings
 
 
 def handle_file_upload(filepath):
-    update_driver_db(filepath)
-    update_address_db(filepath)
+    try:
+        update_address_db(filepath)
+    except:
+        pass
+
+    try:
+        update_driver_db(filepath)
+    except:
+        pass
 
 
 def load_files(filepaths):
+    print('LOAD FILES', filepaths)
     timer = timerit.Timerit(verbose=2)
     for _ in timer:
         with concurrent.futures.thread.ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:

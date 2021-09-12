@@ -13,12 +13,25 @@ def get_addresses(home_depot=False):
         flag = 1 if home_depot else 0
         addresses = Address.objects.filter(is_home_depot__exact=flag).order_by('zipcode', 'country', 'state', 'city',
                                                                                'street')
-
         for address in addresses:
             address_choices.append((address.__str__(), address.__str__()))
     except ProgrammingError:
         pass
     return address_choices
+
+
+def get_drivers():
+    driver_choices = list()
+
+    try:
+        drivers = Driver.objects.all().order_by('role', 'first_name', 'last_name')
+
+        for driver in drivers:
+            driver_choices.append((driver.__str__(), driver.__str__()))
+    except ProgrammingError:
+        pass
+
+    return driver_choices
 
 
 class BaseLocationFormSet(BaseFormSet):
@@ -39,9 +52,7 @@ class BaseLocationFormSet(BaseFormSet):
 
 
 class DefaultForm(forms.Form):
-    address_choices = get_addresses(home_depot=True)
-    departure_choices = [('', 'Select Starting Location')]
-    departure_choices.extend(address_choices)
+    departure_choices = [('', 'Select Starting Location')] + get_addresses(home_depot=True)
     departure_field = forms.ChoiceField(
         widget=forms.Select(attrs={'class': 'form-control',
                                    'required': 'required'}),
@@ -53,6 +64,11 @@ class DefaultForm(forms.Form):
                                         'placeholder': 'Enter Vehicle Capacity',
                                         'required': 'required'}),
         min_value=1)
+
+    def __init__(self, *args, **kwargs):
+        departure_choices = [('', 'Select Starting Location')] + get_addresses(home_depot=True)
+        super(DefaultForm, self).__init__(*args, **kwargs)
+        self.fields['departure_field'].choices = departure_choices
 
 
 class BaseDriverFormSet(BaseFormSet):
@@ -73,22 +89,17 @@ class BaseDriverFormSet(BaseFormSet):
 
 
 class DriverForm(forms.Form):
-    driver_choices = list()
-
-    try:
-        drivers = Driver.objects.all().order_by('role', 'first_name', 'last_name')
-
-        for driver in drivers:
-            driver_choices.append((driver.__str__(), driver.__str__()))
-    except ProgrammingError:
-        pass
-
-    driver_choices = [('', 'Select Driver')] + driver_choices
+    driver_choices = [('', 'Select Driver')] + get_drivers()
 
     driver_field = forms.ChoiceField(
         widget=forms.Select(attrs={'class': 'form-control',
                                    'required': 'required'}),
         choices=driver_choices, label="")
+
+    def __init__(self, *args, **kwargs):
+        super(DriverForm, self).__init__(*args, **kwargs)
+        driver_choices = [('', 'Select Driver')] + get_drivers()
+        self.fields['driver_field'].choices = driver_choices
 
 
 class DriverFormSetHelper(FormHelper):
@@ -115,10 +126,9 @@ class DriverFormSetHelper(FormHelper):
 
 
 class LocationForm(forms.Form):
-    address_choices = get_addresses(home_depot=False)
-    address_choices = [('', 'Select Address')] + address_choices
+    address_choices = [('', 'Select Address')] + get_addresses(home_depot=False)
     location_field = forms.ChoiceField(
-        widget=forms.Select(attrs={'class': 'form-control selectpciker',
+        widget=forms.Select(attrs={'class': 'form-control selectpicker',
                                    'data-live-search': 'true',
                                    'searchable': 'Search here...',
                                    'required': 'required'}),

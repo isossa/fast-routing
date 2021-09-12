@@ -24,7 +24,7 @@ class Address:
     Attributes:
     """
 
-    def __init__(self, street="", city="", state="", country="United States", zipcode=""):
+    def __init__(self, street="", city="", state="", country="United States", zipcode="", is_home_base=""):
         """Creates a standard U.S address.
 
         Args:
@@ -48,6 +48,10 @@ class Address:
         self.__latitude = None
         self.__longitude = None
         self.__info = None
+        if is_home_base == "":
+            self.__is_home_base = 0
+        else:
+            self.__is_home_base = int(is_home_base) == 1
 
     @property
     def street(self) -> str:
@@ -75,6 +79,11 @@ class Address:
             String representing the state in which this address is located.
         """
         return self.__state
+
+    @property
+    def is_home_base(self) -> bool:
+        """Returns whether this address is a home base."""
+        return self.__is_home_base
 
     @property
     def country(self) -> str:
@@ -168,9 +177,11 @@ class Address:
     @staticmethod
     def build_addresses(data):
         """Given a data frame, returns a list of Address objects"""
-
+        print('BUILD ADDRESSES')
+        print(data)
         return [Address(street=add.Address.strip(), city=add.City.strip(), state=add.State.strip(),
-                        zipcode=add.Zip_Code, country="United States") for add in data.itertuples()]
+                        zipcode=add.Zip_Code, country="United States", is_home_base=add.Home_Base)
+                for add in data.itertuples()]
 
     def __str__(self) -> str:
         """Retrieves a string representation of this address.
