@@ -12,8 +12,9 @@ socket.onclose = function(event) {
 };
 
 socket.onopen = function(event) {
-    console.log('Keeping connection open.');
+    console.log('Keeping connection open');
     socket.send(JSON.stringify({
+            'update_matrix': document.getElementById('id_update_distance_matrix').textContent.trim(),
             'message': 'Ready'
     }));
 }
@@ -36,3 +37,4 @@ socket.onerror = function(event) {
 
 console.log(ws_scheme);
 console.log(socket);
+console.log(document.getElementById('id_update_distance_matrix').textContent);

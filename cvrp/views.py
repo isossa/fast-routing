@@ -1,5 +1,4 @@
 import concurrent.futures.thread
-import concurrent.futures.thread
 import os
 import uuid
 
@@ -11,6 +10,7 @@ from django.forms import formset_factory
 from django.http import HttpResponseRedirect, FileResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils.datastructures import MultiValueDictKeyError
 from django.views import generic
 from django.views.generic import TemplateView
 from fpdf import FPDF
@@ -18,7 +18,7 @@ from fpdf import FPDF
 from . import common, services, algorithms
 from .database import DistanceMatrixDB, DurationMatrixDB
 from .forms import DriverForm, BaseDriverFormSet, LocationForm, BaseLocationFormSet, DefaultForm, DriverFormSetHelper, \
-    UploadAddressForm, UploadDriverForm
+    UploadAddressForm, UploadDriverForm, UpdateMatrixCheckBox
 from .models import Driver, Address, Location
 from .utils import dataframeutils
 from .utils.savingsutils import SavingsDB
@@ -93,30 +93,16 @@ def update_address_db(filepath):
     update_address_db_helper(data)
 
 
-# update_driver_db('./data/Drivers.xlsx')
-
-# def refresh():
-#     """Ensure that every address is geocoded"""
-#     for address in Address.objects.filter(longitude__exact=''):
-#         address_copy = common.Address(street=address.street, city=address.city, state=address.state,
-#                                       country=address.country, zipcode=address.zipcode)
-#         address.latitude = address_copy.latitude
-#         address.longitude = address_copy.longitude
-#         address.coordinates = address_copy.coordinates
-#         address.info = address_copy.info
-#         address.save()
-
-
 def get_matrices():
-    address_list = []
     try:
+        address_list = []
         for address in Address.objects.all():
             address_obj = common.Address(street=address.street, city=address.city, state=address.state,
                                          country=address.country, zipcode=address.zipcode)
             address_list.append(address_obj)
 
-        DistanceMatrixDB.distance_matrix, DurationMatrixDB.duration_matrix, response = services.DistanceMatrix.request_matrix(
-            address_list, os.environ['BING_MAPS_API_KEY'], 'driving', 1)
+        DistanceMatrixDB.distance_matrix, DurationMatrixDB.duration_matrix, response = services.DistanceMatrix. \
+            request_matrix(address_list, os.environ['BING_MAPS_API_KEY'], 'driving', size=25)
 
         DistanceMatrixDB.save('./cache/distance_matrix')
         DurationMatrixDB.save('./cache/duration_matrix')
@@ -126,8 +112,11 @@ def get_matrices():
 
 
 def load_matrices():
-    DistanceMatrixDB.load('./cache/distance_matrix')
-    DurationMatrixDB.load('./cache/duration_matrix')
+    try:
+        DistanceMatrixDB.load('./cache/distance_matrix')
+        DurationMatrixDB.load('./cache/duration_matrix')
+    except FileNotFoundError:
+        get_matrices()
 
 
 def get_matrix(geocodes: list, matrix: dict):
@@ -179,18 +168,11 @@ def get_geocode(address: Address) -> str:
     return coordinates[1:len(coordinates) - 1]
 
 
-# print("\n")
-# print(DistanceMatrixDB.distance_matrix)
+def geocode_to_address(geocode: str) -> Address:
+    coordinates = '(' + geocode + ')'
+    result_set = Address.objects.filter(coordinates__exact=coordinates)
+    return result_set[0] if result_set else None
 
-# add1 = common.Address(street="5545 Center St", city="Omaha", state="Nebraska", country="United States", zipcode=68106)
-# add2 = common.Address(street="9029 Burt St", city="Omaha", state="Nebraska", country="United States", zipcode=68114)
-
-# print("\n")
-
-# print(DistanceMatrixDB.distance_between(add1, add2))
-# print(DurationMatrixDB.duration_between(add1, add2))
-
-# print(SavingsDB.compute_saving_matrix(DistanceMatrixDB.distance_matrix, add1))
 
 def get_drivers(driver_formset):
     driver_set = []
@@ -235,7 +217,6 @@ def get_driver_availability(driver_set: list, location_set: list) -> dict:
 
 
 def run_solver(default_formset, driver_formset, location_formset):
-    # get_matrices()
     load_matrices()
 
     home_depot_obj = str2address(default_formset.cleaned_data[0]['departure_field'])
@@ -300,9 +281,6 @@ def run_solver(default_formset, driver_formset, location_formset):
 
     print("Customers demand: ", customers_demand, end="\n\n")
 
-    # Marginal capacity not defined - Default to zero
-    marginal_capacity = 1
-
     # Run CVRP Solver
     print('Starting solver...', end="\n\n")
 
@@ -311,7 +289,7 @@ def run_solver(default_formset, driver_formset, location_formset):
     routes_assigned, all_routes, active_locations, all_assigned = algorithms.assign_routes(
         sorted_savings=SavingsDB.sorted_savings_map, capacity=vehicle_capacity,
         demand=customers_demand, customers=active_locations, availability_map=sorted_availability_map,
-        duration_matrix=duration_matrix, marginal_capacity=marginal_capacity)
+        duration_matrix=duration_matrix, marginal_capacity=0)
 
     active_locations = {location: status for location, status in active_locations.items() if status}
 
@@ -345,7 +323,6 @@ def run_solver(default_formset, driver_formset, location_formset):
             driver_obj = result_set[0]
             for geocode in route_generated:
                 location = location_map[geocode]
-                print(geocode, location)
                 location.route_id = route_id
                 location.assigned_to = driver_obj
                 location.assigned = True
@@ -361,26 +338,17 @@ def run_solver(default_formset, driver_formset, location_formset):
             driver_index = driver_fields[1]
             driver_fields = driver_fields[0].split(' ')
             driver_name = driver_fields[0] + ' ' + driver_fields[1]
-            print(driver_name)
             temp = [str(home_depot_obj)]
-            for geocode in routes_assigned[driver]:
-                coordinates = '(' + geocode + ')'
-                result_set = Address.objects.filter(coordinates__exact=coordinates)
-                print('\t', result_set[0])
-                temp.append(str(result_set[0]))
-            print('\n')
+            temp += [str(geocode_to_address(geocode)) for geocode in routes_assigned[driver]]
             temp.append(str(home_depot_obj))
             routes_result[driver_name] = temp
 
-    print('\n\n')
-    for location in location_set:
-        print(location)
+    locations_not_assigned = [str(geocode_to_address(location)) for location in active_locations.keys()]
 
-    return routes_result, all_routes, active_locations, all_assigned
+    return routes_result, all_routes, locations_not_assigned, all_assigned
 
 
 def create_routes(request):
-    # refresh()
     try:
         number_drivers = 1 if Driver.objects.count() == 0 else 1
     except ProgrammingError:
@@ -395,16 +363,10 @@ def create_routes(request):
     LocationFormSet = formset_factory(LocationForm, formset=BaseLocationFormSet, max_num=number_addresses)
     DefaultFormset = formset_factory(DefaultForm)
 
-    # print("CREATE ROUTES")
-    # print(request.POST)
-    # print(request.get_full_path())
     if request.method == "POST":
         driver_formset = DriverFormSet(request.POST, prefix='drivers')  # queryset=Driver.objects.none()
         location_formset = LocationFormSet(request.POST, prefix='locations')
         default_formset = DefaultFormset(request.POST, prefix='default')
-        # print(default_formset.is_valid())
-        # print(driver_formset.is_valid())
-        # print(location_formset.is_valid())
 
         if default_formset.is_valid() and driver_formset.is_valid() and location_formset.is_valid():
             # Process data
@@ -418,15 +380,14 @@ def create_routes(request):
                                                                                            location_formset)
             request.session['routes_assigned'] = routes_assigned
             request.session['all_routes'] = all_routes
-            request.session['location_assigned'] = locations_not_assigned
+            request.session['location_not_assigned'] = locations_not_assigned
             request.session['all_assigned'] = all_assigned
 
             print('FROM CREATE ROUTE')
             print('ROUTES ASSIGNED', request.session['routes_assigned'])
             print('ALL ROUTES', request.session['all_routes'])
-            print('LOCATIONS ACTIVE', request.session['location_assigned'])
+            print('LOCATIONS ACTIVE', request.session['location_not_assigned'])
             print('ALL ROUTES ASSIGNED', request.session['all_assigned'])
-            # Redirect to a new URL:
             return HttpResponseRedirect(reverse('new_route'))
     else:
         driver_formset = DriverFormSet(request.GET or None, prefix='drivers')
@@ -447,7 +408,7 @@ def new_route(request):
     context = {
         'routes_assigned': request.session.get('routes_assigned').items(),
         'all_routes': request.session.get('all_routes'),
-        'location_assigned': request.session.get('location_assigned'),
+        'location_not_assigned': request.session.get('location_not_assigned'),
         'all_assigned': request.session.get('all_assigned')
     }
     return render(request, 'new_route.html', context=context)
@@ -475,18 +436,12 @@ def download_routes(request):
         pdf.cell(w=40, h=10, txt='', border=0, ln=1)
 
     if not all_assigned:
-        pdf.set_font(family='courier', style='B', size=16)
-        pdf.cell(w=40, h=10, txt='', border=0, ln=1)
+        pdf.set_font(family='courier', style='B', size=14)
         pdf.cell(w=40, h=10, txt='The following address(es) could not be assigned:', border=0, ln=1)
         pdf.set_font('courier', '', 12)
 
-        # location_not_assigned = [tuple(coordinates) for coordinates in location_not_assigned]
-        print(location_not_assigned, type(location_not_assigned))
-
-        for geocode in location_not_assigned:
-            print(geocode, geocode[0], geocode[1])
-            location = Address.objects.filter(latitude__exact=geocode[0], longitude__exact=geocode[1])
-            pdf.cell(200, 8, f'    {geocode}', 0, 1)
+        for location in location_not_assigned:
+            pdf.cell(200, 8, f'    {location}', 0, 1)
         pdf.cell(w=40, h=10, txt='', border=0, ln=1)
 
     pdf.output(pdf_file, 'F')
@@ -524,6 +479,7 @@ def load_files(files):
 def settings(request):
     if request.method == 'POST':
         form = UploadAddressForm(request.POST, request.FILES)
+        update_matrix = UpdateMatrixCheckBox(request.POST, None)
         if form.is_valid():
             if request.FILES:
                 filenames = list(request.FILES.keys())
@@ -531,13 +487,19 @@ def settings(request):
                 files = [request.FILES[file] for file in filenames]
                 load_files(files)
                 print("Added files to storage system", files)
+                try:
+                    context = {'update_distance_matrix_field': request.POST['update_distance_matrix_field']}
+                except MultiValueDictKeyError:
+                    context = None
 
-            return render(request, 'settings_loader.html',
-                          context=None)  # HttpResponseRedirect(reverse('settings_load'))
+                return render(request, 'settings_loader.html', context=context)
+            else:
+                return HttpResponseRedirect(reverse('create_routes'))
 
     context = {
         'address_file_form': UploadAddressForm(),
-        'driver_file_form': UploadDriverForm()
+        'driver_file_form': UploadDriverForm(),
+        'update_matrix_checkbox': UpdateMatrixCheckBox()
     }
 
     return render(request, 'settings.html', context=context)

@@ -1,7 +1,14 @@
 {% extends "base_generic.html" %}
 {% load static %}
 
-{% block title%} <title>Settings | Fast Routing</title>{% endblock %}
+{% block title %} <title>Settings | Fast Routing</title>{% endblock %}
+
+{% block css %}
+    {{ block.super}}
+    <meta http-equiv='cache-control' content='no-cache'>
+    <meta http-equiv='expires' content='0'>
+    <meta http-equiv='pragma' content='no-cache'>
+{% endblock %}
 
 {% block content %}
 <h3>Settings</h3>
@@ -12,8 +19,6 @@
     </div>
 </div>
 
-<br/>
-
 <div class="d-flex align-items-center justify-content-center mt-2" id="div-spinner">
     <button class="btn btn-outline-success" id="btn-spinner" type="button" disabled>
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -21,6 +26,9 @@
     </button>
 </div>
 
+<div id="id_update_distance_matrix" class="not-visible">
+    {{ update_distance_matrix_field }}
+</div>
 {% endblock %}
 
 {% block js %}

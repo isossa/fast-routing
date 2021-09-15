@@ -150,6 +150,9 @@ django_heroku.settings(locals())
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+LOCAL_CACHE_URL = '/cache'
+LOCAL_CACHE_ROOT = os.path.join(BASE_DIR, 'cache')
+
 RQ_QUEUES = {
     'default': {
         'HOST': 'localhost',
@@ -169,7 +172,7 @@ RQ_QUEUES = {
         },
     },
     'high': {
-        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0'), # If you're on Heroku
+        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0'),  # If you're on Heroku
         'DEFAULT_TIMEOUT': 500,
     },
     'low': {
@@ -182,4 +185,3 @@ RQ_QUEUES = {
 RQ_SHOW_ADMIN_LINK = True
 
 # RQ_EXCEPTION_HANDLERS = ['path.to.exception'] # If you need custom exception handlers
-

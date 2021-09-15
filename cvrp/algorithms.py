@@ -12,7 +12,8 @@ def valid_assignment(route: tuple, demand: dict):
     pass
 
 
-def update_route(link: tuple, route: tuple, capacity: int, demand: dict, duration_matrix: dict, locations: dict) -> tuple:
+def update_route(link: tuple, route: tuple, capacity: int, demand: dict, duration_matrix: dict,
+                 locations: dict) -> tuple:
     """Update routes
 
     :param link:
@@ -23,10 +24,17 @@ def update_route(link: tuple, route: tuple, capacity: int, demand: dict, duratio
     :return:
     """
     if len(route) == 0:
-        if node_is_active(link[0], locations) and node_is_active(link[1], locations):
-            route = add_link(link[0], link[1], route)
-            set_node_status(link[0], locations, False)
-            set_node_status(link[1], locations, False)
+        if len(link) == 1:
+            expected_demand = demand[link[0]]
+            if expected_demand <= capacity:
+                route = add_link((link[0]), None, route)
+                set_node_status(link[0], locations, False)
+        elif node_is_active(link[0], locations) and node_is_active(link[1], locations):
+            expected_demand = demand[link[0]] + demand[link[1]]
+            if expected_demand <= capacity:
+                route = add_link(link[0], link[1], route)
+                set_node_status(link[0], locations, False)
+                set_node_status(link[1], locations, False)
     else:
         i, j = link
         # Exactly one of i or j has been already included and that point
@@ -176,9 +184,7 @@ def insert_on_margin(routes: dict, sorted_savings: dict, capacity: int, demand: 
         driver, link, _ = get_maximum_savings(routes, [location], sorted_savings)
         route = routes[driver]
         previous_route = route
-        expected_capacity = get_route_demand(route, demand) + demand[location]
         relaxed_capacity = capacity + marginal_capacity
-        # print(f'FLAG {driver}, {location}')
         route = update_route(link, route, relaxed_capacity, demand, duration_matrix, customers)
         if previous_route != route:
             routes[driver] = route
@@ -189,7 +195,8 @@ def insert_on_margin(routes: dict, sorted_savings: dict, capacity: int, demand: 
     return routes, remaining_locations, customers
 
 
-def insert_last_customer(routes: dict, savings: dict, capacity: int, demand: dict, duration_matrix: dict, customers: dict):
+def insert_last_customer(routes: dict, savings: dict, capacity: int, demand: dict, duration_matrix: dict,
+                         customers: dict):
     """Insert last customer to exiting routes, whenever that is possible
 
     :param routes:
@@ -265,29 +272,27 @@ def run_feasible_assignment(sorted_savings: dict, capacity: int, demand: dict, c
                 routes_assignment = insert_last_customer(routes_assignment, sorted_savings,
                                                          capacity + marginal_capacity,
                                                          demand, duration_matrix, locations)
-
+        iteration_counter += 1
         customers.update(locations)
         locations = {customer: status for customer, status in customers.items() if status}
         all_routes['Iteration ' + str(iteration_counter)] = routes_assignment
-        iteration_counter += 1
 
     all_assigned = (len(locations) == 0)
     return routes_assignment, all_routes, customers, all_assigned
 
 
-def build_routes(sorted_savings: dict, capacity: int, demand: dict, customers: dict, availability_map: dict, duration_matrix: dict,
+def build_routes(sorted_savings: dict, capacity: int, demand: dict, customers: dict, availability_map: dict,
+                 duration_matrix: dict,
                  marginal_capacity: int) -> tuple:
     iteration = 0
     all_assigned = False
     all_routes = {}
     routes_assignment = {}
 
-    while not all_assigned and iteration <= 10:
+    while not all_assigned and iteration < 10:
         dummy_drivers = {}
         for driver, availability in availability_map.items():
             dummy_drivers[str(driver) + '_' + str(iteration)] = availability
-
-        iteration += 1
 
         active_locations = {customer: is_not_assigned for customer, is_not_assigned in customers.items()
                             if is_not_assigned}
@@ -300,7 +305,8 @@ def build_routes(sorted_savings: dict, capacity: int, demand: dict, customers: d
 
         routes_assignment.update(routes_assignment_new)
         all_routes.update(all_routes_new)
-        customers.update(customers_new)
+        iteration += 1
+    customers.update(customers_new)
 
     return routes_assignment, all_routes, customers, all_assigned
 
@@ -327,6 +333,12 @@ def assign_routes(sorted_savings: dict, capacity: int, demand: dict, customers: 
             locations = list(customers.keys())
             print('\tLOCATION', locations)
             routes_assignment[str(next(drivers)) + '_' + str(1)] = tuple(locations)
+
+            # route = update_route(link=locations, route=(), capacity=capacity, demand=demand,
+            #                      duration_matrix=duration_matrix,
+            #                      locations=customers)
+            # print('UPDATED ROUTE', route)
+
             all_routes = {'Iteration 1': routes_assignment}
             customers = {customer: not is_active for customer, is_active in customers.items() if is_active}
             all_assigned = True

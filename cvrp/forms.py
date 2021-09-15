@@ -157,3 +157,12 @@ class UploadDriverForm(forms.Form):
         label='',
         required=False
     )
+
+
+class UpdateMatrixCheckBox(forms.Form):
+    update_distance_matrix_field = forms.BooleanField(
+        required=False,
+        label_suffix='',
+        label='Update distance matrix  ',
+        widget=forms.CheckboxInput(attrs={'class': 'ml-2'})
+    )

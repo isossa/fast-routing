@@ -80,7 +80,7 @@ def is_interior(node: int, route_assigned: tuple) -> bool:
     return node in route_assigned[1:len(route_assigned) - 1]
 
 
-def add_link(i: int, j: int, route_assigned: tuple) -> tuple:
+def add_link(i: str, j: str, route_assigned: tuple) -> tuple:
     """Add a node to a route
 
     :param i:
@@ -89,7 +89,12 @@ def add_link(i: int, j: int, route_assigned: tuple) -> tuple:
     :return:
     """
     if len(route_assigned) == 0:
-        return i, j
+        if i is not None and j is not None:
+            return i, j
+        if i is not None:
+            return tuple(i)
+        else:
+            return tuple(j)
     else:
         route = list(route_assigned)
         location = route.index(j)
@@ -125,7 +130,7 @@ def get_link_status(link: tuple, customers: dict) -> bool:
     return False
 
 
-def node_is_active(node: int, customers: dict) -> bool:
+def node_is_active(node: str, customers: dict) -> bool:
     """Returns whether this node has already been added to a route.
 
     :param node:
@@ -138,7 +143,7 @@ def node_is_active(node: int, customers: dict) -> bool:
         return False
 
 
-def set_node_status(node: int, nodes: dict, status: bool):
+def set_node_status(node: str, nodes: dict, status: bool):
     """Set whether this customer has not been included in a route.
 
     :param node:
