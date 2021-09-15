@@ -182,14 +182,15 @@ def insert_on_margin(routes: dict, sorted_savings: dict, capacity: int, demand: 
     print('FROM INSERT ON MARGIN', remaining_locations)
     for location in remaining_locations:
         driver, link, _ = get_maximum_savings(routes, [location], sorted_savings)
-        route = routes[driver]
-        previous_route = route
-        relaxed_capacity = capacity + marginal_capacity
-        route = update_route(link, route, relaxed_capacity, demand, duration_matrix, customers)
-        if previous_route != route:
-            routes[driver] = route
-            print('FROM INSERT ON MARGIN')
-            break
+        if driver is not None and link is not None:
+            route = routes[driver]
+            previous_route = route
+            relaxed_capacity = capacity + marginal_capacity
+            route = update_route(link, route, relaxed_capacity, demand, duration_matrix, customers)
+            if previous_route != route:
+                routes[driver] = route
+                print('FROM INSERT ON MARGIN')
+                break
 
     remaining_locations = [node for node in customers if customers[node]]
     return routes, remaining_locations, customers
