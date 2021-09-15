@@ -1,9 +1,9 @@
 {% extends "base_generic.html" %}
-
+{% load static %}
 {% block title%} <title>Routes | Fast Routing</title>{% endblock %}
 
 {% block content %}
-<h3>Assigned Routes</h3>
+<h3>Routes Assigned</h3>
 
 <div class="container p-4">
 
@@ -20,26 +20,48 @@
       <div class="mb-2">
         <strong>{{ driver }}</strong>
       </div>
-      <ol>
+      <div>
         {% for route in path %}
-        <li class="ml-5 mb-2">
-          {{ route }}
-        </li>
+          {% if forloop.counter == forloop.first %}
+            <div class="ml-5 mb-2">
+              <img src="{% static 'images/map_start_pin.jpg' %}" alt="start pin" class="img-thumbnail" style="width:2.5%"> {{ route }}
+            </div>
+          {% elif forloop.last %}
+            <div class="ml-5 mb-2">
+              <img src="{% static 'images/map_end_pin.png' %}" alt="end pin" class="img-thumbnail" style="width:2.5%"> {{ route }}
+            </div>
+          {% else %}
+            <div class="ml-5 mb-2">
+                  <img src="{% static 'images/vertical_line.png' %}" alt="vertical line" class="img-thumbnail" style="width:2.5%"> {{ route }}
+            </div>
+          {% endif %}
         {% endfor %}
-      </ol>
+      </div>
     </div>
   {% endfor %}
+
+  {% if location_assigned %}
+
+  <h5 class="mt-4">The following address(es) could not be assigned:</h5>
+  <div class="m-2">
+    {% for location in location_assigned %}
+      <div class="ml-5 mb-2">
+        <img src="{% static 'images/map_start_pin.jpg' %}" alt="start pin" class="img-thumbnail" style="width:2.5%"> {{ location }}
+      </div>
+    {%  endfor %}
+  </div>
+
+  {% endif %}
 {% else %}
   <div class="row align-items-center justify-content-center">
     <p style="font-size:18px">No route has been assigned.</p>
   </div>
-
-  <br/>
-
-  <div class="d-flex align-items-center justify-content-center">
-    <a href="{% url 'create_routes' %}" role="button" class="btn btn-outline-primary p-2">Home</a>
-  </div>
 {% endif %}
+
+<div class="d-flex align-items-center justify-content-center form-group">
+  <a href="{% url 'create_routes' %}" role="button" style="max-width:10%;" class="btn btn-outline-primary btn-block m-2">Home</a>
+  <a href="{% url 'download_routes' %}" role="button" style="max-width:10%;" data-title="Report: Routes Assigned" class="btn btn-outline-primary btn-block m-2" target="_blank">Save</a>
+</div>
 
 </div>
 {% endblock %}

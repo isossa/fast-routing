@@ -59,10 +59,10 @@ class Language(models.Model):
 
 
 class Location(models.Model):
-    address = models.ForeignKey(Address, on_delete=models.PROTECT)
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
     demand = models.PositiveIntegerField(default=0)
     assigned = models.BooleanField(editable=False, null=True, default=False)
-    assigned_to = models.ForeignKey('Driver', on_delete=models.PROTECT, null=True)
+    assigned_to = models.ForeignKey('Driver', on_delete=models.SET_NULL, null=True)
     route_id = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=False)
     created_on = models.DateTimeField(auto_now_add=True, editable=False, null=True)
     last_modified = models.DateTimeField(auto_now=True, editable=False)
@@ -83,7 +83,7 @@ class Route(models.Model):
     distance = models.PositiveIntegerField(default=0)
     created_on = models.DateTimeField(auto_now_add=True, null=True, editable=False)
     last_modified = models.DateTimeField(auto_now=True)
-    assigned_to = models.ForeignKey('Driver', on_delete=models.PROTECT)
+    assigned_to = models.ForeignKey('Driver', on_delete=models.SET_NULL, null=True)
 
     class Meta:
         verbose_name = 'Route'

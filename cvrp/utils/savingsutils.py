@@ -54,6 +54,10 @@ class SavingsDB:
                         temp.update({destination: value})
                 SavingsDB.savings_map[origin] = temp
 
+        print("FROM COMPUTE SAVING MATRIX")
+        print('\tDistance Matrix', distance_map)
+        print('\tAddress', depot)
+        print('\tSavings Map', SavingsDB.savings_map, end='\n\n')
         return SavingsDB.savings_map
 
     @staticmethod

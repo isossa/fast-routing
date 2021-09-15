@@ -99,13 +99,11 @@ class DistanceMatrix:
         for i, origin in enumerate(addresses):
             params['origins'] = '; '.join([origin.coordinates_as_string()])
             destinations = []
-            buffet_size = 0
             for current_index in range(len(addresses)):
                 if current_index != i:
                     destinations.append(addresses[current_index])
-                    buffet_size += 1
 
-                if buffet_size == size:
+                if len(destinations) == size:
                     destinations_coors = [address.coordinates_as_string() for address in destinations]
                     params['destinations'] = '; '.join(destinations_coors)
                     response = requests.get(url, params=params)
@@ -120,7 +118,6 @@ class DistanceMatrix:
                     duration_map = DistanceMatrix.__update_matrix(duration_map, temp_duration_map)
 
                     destinations = []
-                    buffet_size = 0
 
             if len(destinations) > 0:
                 destinations_coors = [address.coordinates_as_string() for address in destinations]

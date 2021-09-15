@@ -10,38 +10,20 @@ from django.core.cache import cache
 from django.core.files.storage import FileSystemStorage
 from django.db import ProgrammingError
 from django.forms import formset_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, FileResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import generic
 from django.views.generic import TemplateView
+from fpdf import FPDF
 
 from . import common, services, algorithms
-from .connection import WebSocket
 from .database import DistanceMatrixDB, DurationMatrixDB
 from .forms import DriverForm, BaseDriverFormSet, LocationForm, BaseLocationFormSet, DefaultForm, DriverFormSetHelper, \
     UploadAddressForm, UploadDriverForm
 from .models import Driver, Address, Location
 from .utils import dataframeutils
 from .utils.savingsutils import SavingsDB
-
-
-def reset_databases():
-    try:
-        result = Driver.objects.all()
-        while result.exists():
-            Driver.objects.all().delete()
-            result = Driver.objects.all()
-
-        result = Address.objects.all()
-        while result.exists():
-            Address.objects.all().delete()
-            result = Address.objects.all()
-
-        cache.clear()
-        print('RUNNING DATABASE RESET')
-    except ProgrammingError:
-        pass
 
 
 def read_xls_data(filepath):
@@ -129,21 +111,25 @@ def update_address_db(filepath):
 
 def get_matrices():
     address_list = []
-    for address in Address.objects.all():
-        address_obj = common.Address(street=address.street, city=address.city, state=address.state,
-                                     country=address.country, zipcode=address.zipcode)
-        address_list.append(address_obj)
+    try:
+        for address in Address.objects.all():
+            address_obj = common.Address(street=address.street, city=address.city, state=address.state,
+                                         country=address.country, zipcode=address.zipcode)
+            address_list.append(address_obj)
 
-    DistanceMatrixDB.distance_matrix, DurationMatrixDB.duration_matrix, response = services.DistanceMatrix.request_matrix(
-        address_list, os.environ['BING_MAPS_API_KEY'], 'driving', 1)
+        DistanceMatrixDB.distance_matrix, DurationMatrixDB.duration_matrix, response = services.DistanceMatrix.request_matrix(
+            address_list, os.environ['BING_MAPS_API_KEY'], 'driving', 1)
 
-    DistanceMatrixDB.save('./cache/test_distance_matrix')
-    DurationMatrixDB.save('./cache/test_duration_matrix')
+        DistanceMatrixDB.save('./cache/distance_matrix')
+        DurationMatrixDB.save('./cache/duration_matrix')
+    except ProgrammingError:
+        # INTENTIONALLY LEFT BLANK
+        pass
 
 
-def setup():
-    DistanceMatrixDB.load('./cache/test_distance_matrix')
-    DurationMatrixDB.load('./cache/test_duration_matrix')
+def load_matrices():
+    DistanceMatrixDB.load('./cache/distance_matrix')
+    DurationMatrixDB.load('./cache/duration_matrix')
 
 
 def get_matrix(geocodes: list, matrix: dict):
@@ -162,16 +148,6 @@ def get_matrix(geocodes: list, matrix: dict):
 
 def route(request):
     return render(request, 'route_home.html', context=None)
-
-
-def new_route(request):
-    context = {
-        'routes_assigned': request.session.get('routes_assigned').items(),
-        'all_routes': request.session.get('all_routes'),
-        'location_assigned': request.session.get('location_assigned'),
-        'all_assigned': request.session.get('all_assigned')
-    }
-    return render(request, 'new_route.html', context=context)
 
 
 def export(request):
@@ -261,6 +237,9 @@ def get_driver_availability(driver_set: list, location_set: list) -> dict:
 
 
 def run_solver(default_formset, driver_formset, location_formset):
+    # get_matrices()
+    load_matrices()
+
     home_depot_obj = str2address(default_formset.cleaned_data[0]['departure_field'])
     vehicle_capacity = int(default_formset.cleaned_data[0]['vehicle_capacity_field'])
     geocodes = []
@@ -269,94 +248,81 @@ def run_solver(default_formset, driver_formset, location_formset):
                                         state__exact=home_depot_obj.state, zipcode__exact=home_depot_obj.zipcode)
 
     add = result_set[0]
-    print(add.coordinates)
+    print('\nHome Depot', add.coordinates, end="\n\n")
     geocodes.append(get_geocode(add))
-
-    print("\n\n")
 
     driver_set = get_drivers(driver_formset)
 
-    print("\n\n")
+    print("Drivers: ", driver_set)
 
     location_set, geocodes = get_locations(location_formset, geocodes)
 
-    print(geocodes, end="\n\n\n")
+    print('Geocodes: ', geocodes, end="\n\n")
 
     # Prepare data for cvrp algorithm
     distance_matrix = get_matrix(geocodes, matrix=DistanceMatrixDB.distance_matrix)
 
-    print("\n\n")
+    print("Distance Matrix: ", distance_matrix, end="\n\n")
 
     duration_matrix = get_matrix(geocodes, matrix=DurationMatrixDB.duration_matrix)
 
     savings_matrix = SavingsDB.compute_saving_matrix(distance_matrix, home_depot_obj)
 
-    print(savings_matrix)
+    print('Saving Matrix', savings_matrix, end="\n\n")
 
     SavingsDB.get_sorted_savings_matrix()
 
-    print("\n\n")
-
-    print(SavingsDB.sorted_savings_map)
+    print('Sorted Savings Matrix: ', SavingsDB.sorted_savings_map, end="\n\n")
 
     # Compute availability matrix
-    print("\n\n")
     availability_map = get_driver_availability(driver_set, location_set)
 
-    print("\n\n")
-
-    print(availability_map)
+    print('Availability Map: ', availability_map, end="\n\n")
 
     # Get availability scores
     availability_scores = algorithms.get_availability_score(availability_map)
 
-    print("\n\n\n")
-
-    print("Availability scores: ", availability_scores)
-
-    print("\n\n")
+    print("Availability scores: ", availability_scores, end="\n\n")
 
     # Ranking drivers by availability scores
     sorted_availability_map = {}
     for driver in availability_scores.keys():
         sorted_availability_map[driver] = availability_map[driver]
 
-    print("Sorted availability map: ", sorted_availability_map)
-
-    print("\n\n\n")
+    print("Sorted availability map: ", sorted_availability_map, end="\n\n")
 
     # Display locations to be assigned
     for location in location_set:
-        print(location.address, location.assigned)
+        print(location.address, 'is assigned', location.assigned)
 
     # Get demand by location
     customers_demand = {}
     for location in location_set:
         customers_demand[get_geocode(location.address)] = location.demand
 
-    print("Customers demand: ", customers_demand)
+    print("Customers demand: ", customers_demand, end="\n\n")
 
     # Marginal capacity not defined - Default to zero
     marginal_capacity = 1
 
     # Run CVRP Solver
-    print('\nStarting solver...', end="\n")
+    print('Starting solver...', end="\n\n")
 
-    location_assigned = {get_geocode(location.address): location.assigned for location in location_set}
-    print("Location assigned ", location_assigned)
-    routes_assigned, all_routes, location_assigned, all_assigned = algorithms.assign_routes(
+    active_locations = {get_geocode(location.address): not location.assigned for location in location_set}
+    print("Location not assigned(active) ", active_locations)
+    routes_assigned, all_routes, active_locations, all_assigned = algorithms.assign_routes(
         sorted_savings=SavingsDB.sorted_savings_map, capacity=vehicle_capacity,
-        demand=customers_demand, customers=location_assigned, availability_map=sorted_availability_map,
+        demand=customers_demand, customers=active_locations, availability_map=sorted_availability_map,
         duration_matrix=duration_matrix, marginal_capacity=marginal_capacity)
 
-    print('\n\n\n')
+    active_locations = {location: status for location, status in active_locations.items() if status}
 
     print("Solver output", end="\n\n")
 
-    print("Routes Assigned", routes_assigned, "\n")
+    print("Routes Assigned", routes_assigned, end="\n")
     print("All Routes", all_routes, end="\n")
     print("All Assigned", all_assigned, end="\n")
-    print("Location assigned ", location_assigned)
+    print("Location Active ", active_locations, end="\n")
 
     # Post-processing
     location_map = {}
@@ -364,7 +330,8 @@ def run_solver(default_formset, driver_formset, location_formset):
     for location in location_set:
         location_map[get_geocode(location.address)] = location
 
-    print('\n\n\n')
+    print('Location Map', location_map, end='\n\n')
+
     routes_assigned_copy = []
     for driver, route_generated in routes_assigned.items():
         if route_generated:
@@ -407,13 +374,11 @@ def run_solver(default_formset, driver_formset, location_formset):
             temp.append(str(home_depot_obj))
             routes_result[driver_name] = temp
 
-    print('\n\n\n')
+    print('\n\n')
     for location in location_set:
         print(location)
 
-    print("\n\n\n")
-
-    return routes_result, all_routes, location_assigned, all_assigned
+    return routes_result, all_routes, active_locations, all_assigned
 
 
 def create_routes(request):
@@ -427,7 +392,7 @@ def create_routes(request):
         number_addresses = 1 if Address.objects.count() == 0 else 1
     except ProgrammingError:
         number_addresses = 1
-        
+
     DriverFormSet = formset_factory(DriverForm, formset=BaseDriverFormSet, max_num=number_drivers)
     LocationFormSet = formset_factory(LocationForm, formset=BaseLocationFormSet, max_num=number_addresses)
     DefaultFormset = formset_factory(DefaultForm)
@@ -450,17 +415,18 @@ def create_routes(request):
             print(driver_formset.cleaned_data)
             print(location_formset.cleaned_data)
 
-            routes_assigned, all_routes, location_assigned, all_assigned = run_solver(default_formset, driver_formset,
-                                                                                      location_formset)
+            routes_assigned, all_routes, locations_not_assigned, all_assigned = run_solver(default_formset,
+                                                                                           driver_formset,
+                                                                                           location_formset)
             request.session['routes_assigned'] = routes_assigned
             request.session['all_routes'] = all_routes
-            request.session['location_assigned'] = location_assigned
+            request.session['location_assigned'] = locations_not_assigned
             request.session['all_assigned'] = all_assigned
 
             print('FROM CREATE ROUTE')
             print('ROUTES ASSIGNED', request.session['routes_assigned'])
             print('ALL ROUTES', request.session['all_routes'])
-            print('LOCATIONS ASSIGNED', request.session['location_assigned'])
+            print('LOCATIONS ACTIVE', request.session['location_assigned'])
             print('ALL ROUTES ASSIGNED', request.session['all_assigned'])
             # Redirect to a new URL:
             return HttpResponseRedirect(reverse('new_route'))
@@ -479,18 +445,82 @@ def create_routes(request):
     return render(request, 'create_routes.html', context=context)
 
 
+def new_route(request):
+    context = {
+        'routes_assigned': request.session.get('routes_assigned').items(),
+        'all_routes': request.session.get('all_routes'),
+        'location_assigned': request.session.get('location_assigned'),
+        'all_assigned': request.session.get('all_assigned')
+    }
+    return render(request, 'new_route.html', context=context)
+
+
+def download_routes(request):
+    pdf_file = 'routes.pdf'
+    pdf = FPDF(orientation='P', unit='mm', format='A4')
+    pdf.add_page()
+    pdf.set_font(family='courier', style='B', size=18)
+    pdf.cell(w=40, h=10, txt='Routes Assigned', border=0, ln=1)
+    pdf.cell(w=40, h=10, txt='', border=0, ln=1)
+    pdf.set_font('courier', '', 12)
+
+    routes_assigned = request.session.get('routes_assigned').items()
+    location_not_assigned = request.session.get('location_not_assigned')
+    all_assigned = request.session.get('all_assigned')
+
+    for driver, path in routes_assigned:
+        pdf.set_font(family='courier', style='B', size=14)
+        pdf.cell(200, 8, driver, 0, 1)
+        pdf.set_font('courier', '', 12)
+        for location in path:
+            pdf.cell(200, 8, f'    {location}', 0, 1)
+        pdf.cell(w=40, h=10, txt='', border=0, ln=1)
+
+    if not all_assigned:
+        pdf.set_font(family='courier', style='B', size=16)
+        pdf.cell(w=40, h=10, txt='', border=0, ln=1)
+        pdf.cell(w=40, h=10, txt='The following address(es) could not be assigned:', border=0, ln=1)
+        pdf.set_font('courier', '', 12)
+
+        # location_not_assigned = [tuple(coordinates) for coordinates in location_not_assigned]
+        print(location_not_assigned, type(location_not_assigned))
+
+        for geocode in location_not_assigned:
+            print(geocode, geocode[0], geocode[1])
+            location = Address.objects.filter(latitude__exact=geocode[0], longitude__exact=geocode[1])
+            pdf.cell(200, 8, f'    {geocode}', 0, 1)
+        pdf.cell(w=40, h=10, txt='', border=0, ln=1)
+
+    pdf.output(pdf_file, 'F')
+
+    return FileResponse(open(pdf_file, 'rb'), as_attachment=False, content_type='application/pdf')
+
+
 def handle_file_upload(file):
     file_storage = FileSystemStorage()
     filename = file_storage.save(file.name, file)
     filepath = file_storage.path(filename)
     print(filename, filepath)
+    try:
+        if filename.lower().find('driver') != -1:
+            while Driver.objects.all().exists():
+                Driver.objects.all().delete()
+    except ProgrammingError:
+        pass
+
+    try:
+        if filename.lower().find('address') != -1:
+            while Address.objects.all().exists():
+                Address.objects.all().delete()
+            print('DELETED ADDRESSES')
+    except ProgrammingError:
+        pass
 
 
 def load_files(files):
-    timer = timerit.Timerit(verbose=2)
-    for time in timer:
-        with concurrent.futures.thread.ThreadPoolExecutor(max_workers=os.cpu_count() - 1) as executor:
-            executor.map(handle_file_upload, files)
+    for file in files:
+        timer = timerit.Timerit(verbose=2)
+        handle_file_upload(file)
 
 
 def settings(request):
@@ -502,6 +532,7 @@ def settings(request):
                 print(request.FILES.keys(), request.FILES.values())
                 files = [request.FILES[file] for file in filenames]
                 load_files(files)
+                print("Added files to storage system", files)
 
             return render(request, 'settings_loader.html',
                           context=None)  # HttpResponseRedirect(reverse('settings_load'))

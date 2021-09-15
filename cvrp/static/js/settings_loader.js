@@ -34,14 +34,5 @@ socket.onerror = function(event) {
     console.log('An error occurred with message: ' + event.data);
 }
 
-//if (socket.readyState == WebSocket.OPEN) {
-//    socket.onopen();
-//    while (true) {
-//        socket.send(JSON.stringify({
-//            'message': 'Ready'
-//        }));
-//    }
-//};
-
 console.log(ws_scheme);
 console.log(socket);

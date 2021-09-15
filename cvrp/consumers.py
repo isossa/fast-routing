@@ -1,13 +1,16 @@
+import asyncio
 import concurrent
 import json
 import os
 
 import timerit
-from channels.generic.websocket import WebsocketConsumer
+from asgiref.sync import sync_to_async
+from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer
+from django.db import ProgrammingError
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
-from cvrp.views import update_address_db, update_driver_db, reset_databases
+from cvrp.views import update_address_db, update_driver_db
 from routing import settings
 
 
@@ -31,39 +34,14 @@ def load_files(filepaths):
             executor.map(handle_file_upload, filepaths)
 
 
-class UploadFileConsumer(WebsocketConsumer):
-    def connect(self):
-        self.accept()
-
-    def disconnect(self, code):
-        pass
-
-    def receive(self, text_data=None, bytes_data=None):
-        text_data_json = json.loads(text_data)
-        print(text_data_json.values())
-        filename = text_data_json['address_location']
-        print(filename, settings.MEDIA_ROOT)
-        filepaths = [os.path.join(settings.MEDIA_ROOT, filename) for filename in text_data_json.values()]
-        print(filepaths)
-        load_files(filepaths)
-        # print('CHANNEL NAME', self.channel_name)
-        print('SCOPE', self.scope)
-        self.send(text_data=json.dumps({
-            'message': 'Uploading data...'
-        }))
-
-
 class LoaderConsumer(WebsocketConsumer):
     def connect(self):
-        reset_databases()
         self.accept()
 
     def disconnect(self, code):
         pass
 
     def receive(self, text_data=None, bytes_data=None):
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
         filepaths = []
         for f in os.scandir(settings.MEDIA_ROOT):
             if f.is_file():

@@ -16,32 +16,41 @@
 
 <form method="POST" enctype="multipart/form-data" class="mb-2">
     {% csrf_token %}
-    <div class="form-row">
-        <div class="col-md-6 input-group">
-            <div class="input-group-prepend mr-4">
-                <span class="input-group-text">Addresses</span>
+    <div class="mt-4 mb-4">
+        <div class="form-row">
+            <div class="col-md-6 input-group">
+                <div class="input-group-prepend mr-4">
+                    <span class="input-group-text">Addresses</span>
+                </div>
+                <div class="custom-file" id="address-file-location">
+                    {{ address_file_form }}
+                </div>
+
             </div>
-            <div class="custom-file" id="address-file-location">
-                {{ address_file_form }}
+
+            <div class="col-md-6 input-group">
+                <div class="input-group-prepend mr-4">
+                    <span class="input-group-text">Drivers</span>
+                </div>
+                <div class="custom-file" id="driver-file-location">
+                    {{ driver_file_form }}
+                </div>
+
             </div>
-            
         </div>
 
-        <div class="col-md-6 input-group">
-            <div class="input-group-prepend mr-4">
-                <span class="input-group-text">Drivers</span>
+
+        <div class="form-row mt-2">
+            <div class="col-md-6">
+                <span>Please upload <strong>xls</strong> or <b>xlsx</b> only.</span>
             </div>
-            <div class="custom-file" id="driver-file-location">
-                {{ driver_file_form }}
-            </div>
-            
         </div>
     </div>
 
-
-    <div class="form-row mt-2">
-        <div class="col-md-6">
-            <span>Please upload <strong>xls</strong> or <b>xlsx</b> only.</span>
+    <div class="mt-4 mb-4">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="updateDistanceMatrixCheck">
+            <label class="form-check-label" for="updateDistanceMatrixCheck">Update distance matrix</label>
         </div>
     </div>
 
@@ -55,35 +64,10 @@
             Uploading...
         </button>
     </div>
-
-    <div id="txtHint">
-
-    </div>
 </form>
-
-<!--<div class="ajaxLoader">-->
-<!--    <h3>Please wait...</h3>-->
-<!--    <img src="{{ MEDIA_URL }} //static/images/ajax-loader.gif" alt="loading">-->
-<!--</div>-->
 
 {% endblock %}
 
 {% block js %}
     {{ block.super }}
-<!--    <script src="{% static 'js/settings.js' %}" type="text/javascript"></script>-->
-    <!--<script type="text/javascript">-->
-    <!--    function load_spinner(name) {-->
-    <!--        $('.ajaxLoader').show();-->
-    <!--        $.ajax({-->
-    <!--            type: "GET",-->
-    <!--            url: "",-->
-    <!--            dataType: "",-->
-    <!--            async: true,-->
-    <!--            data: {csrfmiddlewaretoken: '{{ csrf_token }}'},-->
-    <!--                success: function(json) {-->
-    <!--                    $('.ajaxLoader').hide();-->
-    <!--                }-->
-    <!--        });-->
-    <!--    }-->
-    <!--</script>-->
 {% endblock %}
