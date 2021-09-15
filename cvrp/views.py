@@ -1,12 +1,10 @@
-import asyncio
+import concurrent.futures.thread
 import concurrent.futures.thread
 import os
 import uuid
 
 import pandas as pd
 import timerit
-from asgiref.sync import sync_to_async
-from django.core.cache import cache
 from django.core.files.storage import FileSystemStorage
 from django.db import ProgrammingError
 from django.forms import formset_factory

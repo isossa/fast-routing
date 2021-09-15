@@ -1,12 +1,9 @@
-import asyncio
 import concurrent
 import json
 import os
 
 import timerit
-from asgiref.sync import sync_to_async
-from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer
-from django.db import ProgrammingError
+from channels.generic.websocket import WebsocketConsumer
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
